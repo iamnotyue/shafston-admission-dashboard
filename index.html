@@ -5,125 +5,136 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shafston Weekly Admission Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.min.js"></script>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0f172a; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; min-height: 100vh; }
-  .header { text-align: center; margin-bottom: 24px; }
-  .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
-  .header .subtitle { color: #94a3b8; font-size: 14px; }
-  .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-  .filter-bar label { color: #94a3b8; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-  .filter-group { display: flex; flex-direction: column; gap: 4px; }
-  .filter-bar select { background: #1e293b; color: #f1f5f9; border: 1px solid #334155; border-radius: 6px; padding: 8px 12px; font-size: 13px; min-width: 160px; cursor: pointer; }
-  .filter-bar select:hover { border-color: #475569; }
-  .progress-bar-container { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
-  .progress-bar-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: #94a3b8; }
-  .progress-bar { display: flex; height: 28px; border-radius: 6px; overflow: hidden; }
-  .progress-bar .seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #fff; transition: width 0.5s ease; }
-  .progress-bar .seg-confirmed { background: #34d399; }
-  .progress-bar .seg-offered { background: #38bdf8; }
-  .progress-bar .seg-pending { background: #fbbf24; }
-  .progress-bar .seg-other { background: #6b7280; }
-  .progress-legend { display: flex; gap: 16px; margin-top: 8px; font-size: 12px; color: #94a3b8; }
-  .progress-legend span { display: flex; align-items: center; gap: 4px; }
-  .progress-legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-  .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 20px; }
-  .kpi-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; text-align: center; }
-  .kpi-card .kpi-value { font-size: 28px; font-weight: 700; margin: 4px 0; }
-  .kpi-card .kpi-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-  .kpi-card .kpi-sub { font-size: 11px; color: #64748b; margin-top: 4px; }
-  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-  .chart-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; }
-  .chart-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #e2e8f0; }
-  .chart-card canvas { max-height: 300px; }
-  .insights-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-  .insights-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #e2e8f0; }
-  .insights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .insight-item { background: #0f172a; border-radius: 6px; padding: 12px; }
-  .insight-item .insight-label { font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
-  .insight-item .insight-value { font-size: 18px; font-weight: 700; }
-  .insight-item .insight-detail { font-size: 11px; color: #64748b; margin-top: 4px; }
-  .table-section { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
-  .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
-  .table-tabs { display: flex; gap: 4px; }
-  .table-tabs button { background: transparent; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; padding: 6px 16px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
-  .table-tabs button.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; font-weight: 600; }
-  .table-tabs button:hover:not(.active) { border-color: #475569; color: #f1f5f9; }
-  .search-box { background: #0f172a; color: #f1f5f9; border: 1px solid #334155; border-radius: 6px; padding: 8px 12px; font-size: 13px; width: 280px; }
-  .search-box::placeholder { color: #475569; }
-  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .data-table th { text-align: left; padding: 8px 6px; color: #94a3b8; font-weight: 600; border-bottom: 1px solid #334155; cursor: pointer; white-space: nowrap; user-select: none; }
-  .data-table th:hover { color: #f1f5f9; }
-  .data-table td { padding: 7px 6px; border-bottom: 1px solid #1e293b; white-space: nowrap; }
-  .data-table tr:hover td { background: #0f172a; }
-  .data-table .badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-  .badge-confirmed { background: rgba(52,211,153,0.15); color: #34d399; }
-  .badge-offered { background: rgba(56,189,248,0.15); color: #38bdf8; }
-  .badge-pending { background: rgba(251,191,36,0.15); color: #fbbf24; }
-  .badge-other { background: rgba(148,163,184,0.15); color: #94a3b8; }
-  .table-wrapper { overflow-x: auto; max-height: 500px; overflow-y: auto; }
-  .footer { text-align: center; color: #475569; font-size: 12px; padding: 16px 0; }
-  @media (max-width: 900px) {
-    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
-    .chart-grid { grid-template-columns: 1fr; }
-    .insights-grid { grid-template-columns: 1fr; }
-    .filter-bar { flex-direction: column; }
-  }
-  @media (max-width: 600px) {
-    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  }
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f172a;color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh}
+.container{max-width:1600px;margin:0 auto;padding:20px}
+.header{text-align:center;margin-bottom:8px}
+.header h1{font-size:26px;font-weight:700}
+.header .subtitle{color:#94a3b8;font-size:13px}
+
+/* Navigation Tabs */
+.nav-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid #1e293b;padding-bottom:0}
+.nav-tabs button{background:transparent;color:#94a3b8;border:none;border-bottom:3px solid transparent;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.nav-tabs button.active{color:#38bdf8;border-bottom-color:#38bdf8}
+.nav-tabs button:hover:not(.active){color:#e2e8f0}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* Common */
+.filter-bar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+.filter-group label{color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.filter-bar select,.filter-bar input[type=text]{background:#1e293b;color:#f1f5f9;border:1px solid #334155;border-radius:6px;padding:7px 12px;font-size:13px;min-width:150px;cursor:pointer}
+.filter-bar select:hover,.filter-bar input:hover{border-color:#475569}
+
+.card{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:16px;margin-bottom:16px}
+.card h3{font-size:14px;font-weight:600;margin-bottom:12px;color:#e2e8f0}
+
+/* Progress bar */
+.progress-bar-container{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:16px;margin-bottom:16px}
+.progress-bar-label{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;color:#94a3b8}
+.progress-bar{display:flex;height:28px;border-radius:6px;overflow:hidden}
+.progress-bar .seg{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;transition:width .5s ease}
+.seg-confirmed{background:#34d399}.seg-offered{background:#38bdf8}.seg-pending{background:#fbbf24}.seg-other{background:#6b7280}
+.progress-legend{display:flex;gap:16px;margin-top:8px;font-size:12px;color:#94a3b8}
+.progress-legend span{display:flex;align-items:center;gap:4px}
+.progress-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
+.kpi-card{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:14px;text-align:center}
+.kpi-card .kpi-value{font-size:26px;font-weight:700;margin:4px 0}
+.kpi-card .kpi-label{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px}
+.kpi-card .kpi-sub{font-size:10px;color:#64748b;margin-top:4px}
+
+/* Charts */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.chart-card{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:16px}
+.chart-card h3{font-size:14px;font-weight:600;margin-bottom:12px;color:#e2e8f0}
+
+/* Insights */
+.insights-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.insight-item{background:#0f172a;border-radius:6px;padding:12px}
+.insight-item .insight-label{font-size:11px;color:#94a3b8;margin-bottom:4px}
+.insight-item .insight-value{font-size:18px;font-weight:700}
+.insight-item .insight-detail{font-size:10px;color:#64748b;margin-top:4px}
+
+/* Table */
+.table-section{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:16px;margin-bottom:16px}
+.table-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.table-tabs{display:flex;gap:4px}
+.table-tabs button{background:transparent;color:#94a3b8;border:1px solid #334155;border-radius:6px;padding:6px 16px;font-size:13px;cursor:pointer;transition:all .2s}
+.table-tabs button.active{background:#38bdf8;color:#0f172a;border-color:#38bdf8;font-weight:600}
+.table-tabs button:hover:not(.active){border-color:#475569;color:#f1f5f9}
+.search-box{background:#0f172a;color:#f1f5f9;border:1px solid #334155;border-radius:6px;padding:7px 12px;font-size:13px;width:260px}
+.search-box::placeholder{color:#475569}
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{text-align:left;padding:7px 5px;color:#94a3b8;font-weight:600;border-bottom:1px solid #334155;cursor:pointer;white-space:nowrap;user-select:none}
+.data-table th:hover{color:#f1f5f9}
+.data-table td{padding:6px 5px;border-bottom:1px solid rgba(30,41,59,.5);white-space:nowrap}
+.data-table tr:hover td{background:#0f172a}
+.badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.badge-confirmed{background:rgba(52,211,153,.15);color:#34d399}
+.badge-offered{background:rgba(56,189,248,.15);color:#38bdf8}
+.badge-pending{background:rgba(251,191,36,.15);color:#fbbf24}
+.badge-other{background:rgba(148,163,184,.15);color:#94a3b8}
+.table-wrapper{overflow-x:auto;max-height:500px;overflow-y:auto}
+
+/* Target achievement */
+.target-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+.target-card{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:20px}
+.target-card h4{font-size:13px;color:#94a3b8;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.target-card .target-value{font-size:28px;font-weight:700;margin-bottom:4px}
+.target-card .target-bar{height:10px;background:#0f172a;border-radius:5px;margin:8px 0;overflow:hidden}
+.target-card .target-fill{height:100%;border-radius:5px;transition:width .5s}
+.target-card .target-detail{font-size:12px;color:#64748b}
+
+/* Weekly table */
+.weekly-table{width:100%;border-collapse:collapse;font-size:12px}
+.weekly-table th{text-align:left;padding:8px 6px;color:#94a3b8;font-weight:600;border-bottom:1px solid #334155;white-space:nowrap}
+.weekly-table td{padding:7px 6px;border-bottom:1px solid rgba(30,41,59,.5);white-space:nowrap}
+.weekly-table tr:hover td{background:#0f172a}
+.on-target{color:#34d399}.below-target{color:#f87171}
+
+.footer{text-align:center;color:#475569;font-size:12px;padding:16px 0}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.chart-grid,.target-grid{grid-template-columns:1fr}.insights-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
+<div class="container">
 
 <div class="header">
   <h1>Shafston Weekly Tentative Report Dashboard</h1>
   <div class="subtitle">As of 4 March 2026 | U18 + VET Enrolments</div>
 </div>
 
-<!-- Filter Bar -->
-<div class="filter-bar">
-  <div class="filter-group">
-    <label>Program Type</label>
-    <select id="filterType" onchange="renderAll()">
-      <option value="all">All Programs</option>
-      <option value="u18">U18 Only</option>
-      <option value="vet">VET Only</option>
-    </select>
-  </div>
-  <div class="filter-group">
-    <label>Status</label>
-    <select id="filterStatus" onchange="renderAll()">
-      <option value="all">All Statuses</option>
-      <option value="confirmed">Confirmed</option>
-      <option value="offered">Offered</option>
-      <option value="pending">Pending</option>
-    </select>
-  </div>
-  <div class="filter-group">
-    <label>Location</label>
-    <select id="filterLocation" onchange="renderAll()"></select>
-  </div>
-  <div class="filter-group">
-    <label>Country</label>
-    <select id="filterCountry" onchange="renderAll()"></select>
-  </div>
+<!-- Navigation Tabs -->
+<div class="nav-tabs">
+  <button class="active" onclick="switchMainTab('overview')">Overview</button>
+  <button onclick="switchMainTab('weekly')">Weekly Tracker</button>
 </div>
 
-<!-- Status Progress Bar -->
+<!-- ═══════════════ TAB 1: OVERVIEW ═══════════════ -->
+<div id="tab-overview" class="tab-content active">
+
+<div class="filter-bar">
+  <div class="filter-group"><label>Program Type</label><select id="filterType" onchange="renderOverview()"><option value="all">All Programs</option><option value="u18">U18 Only</option><option value="vet">VET Only</option></select></div>
+  <div class="filter-group"><label>Status</label><select id="filterStatus" onchange="renderOverview()"><option value="all">All Statuses</option><option value="confirmed">Confirmed</option><option value="offered">Offered</option><option value="pending">Pending</option></select></div>
+  <div class="filter-group"><label>Location</label><select id="filterLocation" onchange="renderOverview()"></select></div>
+  <div class="filter-group"><label>Country</label><select id="filterCountry" onchange="renderOverview()"></select></div>
+</div>
+
 <div class="progress-bar-container">
-  <div class="progress-bar-label">
-    <span>Enrolment Status Overview</span>
-    <span id="progressTotal"></span>
-  </div>
+  <div class="progress-bar-label"><span>Enrolment Status Overview</span><span id="progressTotal"></span></div>
   <div class="progress-bar" id="progressBar"></div>
   <div class="progress-legend" id="progressLegend"></div>
 </div>
 
-<!-- KPI Cards -->
 <div class="kpi-grid" id="kpiGrid"></div>
 
-<!-- Charts -->
 <div class="chart-grid">
   <div class="chart-card"><h3>Enrolment Status Distribution</h3><canvas id="chartStatus"></canvas></div>
   <div class="chart-card"><h3>Top 10 Countries by Enrolments</h3><canvas id="chartCountries"></canvas></div>
@@ -135,13 +146,8 @@
   <div class="chart-card"><h3>Tuition Fee by Country (Top 10)</h3><canvas id="chartFeeCountry"></canvas></div>
 </div>
 
-<!-- Extra Analysis Section -->
-<div class="insights-card">
-  <h3>Pipeline Insights &amp; Analysis</h3>
-  <div class="insights-grid" id="insightsGrid"></div>
-</div>
+<div class="card"><h3>Pipeline Insights &amp; Analysis</h3><div class="insights-grid" id="insightsGrid"></div></div>
 
-<!-- Data Table -->
 <div class="table-section">
   <div class="table-header">
     <div class="table-tabs">
@@ -153,32 +159,74 @@
   </div>
   <div class="table-wrapper">
     <table class="data-table">
-      <thead>
-        <tr>
-          <th onclick="sortTable(0)">Qualification</th>
-          <th onclick="sortTable(1)">Name</th>
-          <th onclick="sortTable(2)">Country</th>
-          <th onclick="sortTable(3)">Offer Date</th>
-          <th onclick="sortTable(4)">Start Date</th>
-          <th onclick="sortTable(5)">End Date</th>
-          <th onclick="sortTable(6)">Location</th>
-          <th onclick="sortTable(7)">Status</th>
-          <th onclick="sortTable(8)">Fee</th>
-          <th onclick="sortTable(9)">Agent</th>
-          <th onclick="sortTable(10)">Officer</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th onclick="sortTable(0)">Qualification</th><th onclick="sortTable(1)">Name</th><th onclick="sortTable(2)">Country</th>
+        <th onclick="sortTable(3)">Offer Date</th><th onclick="sortTable(4)">Start Date</th><th onclick="sortTable(5)">End Date</th>
+        <th onclick="sortTable(6)">Location</th><th onclick="sortTable(7)">Status</th><th onclick="sortTable(8)">Fee</th>
+        <th onclick="sortTable(9)">Agent</th><th onclick="sortTable(10)">Officer</th>
+      </tr></thead>
       <tbody id="tableBody"></tbody>
     </table>
   </div>
 </div>
+</div>
 
-<div class="footer">
-  Generated on: 4 March 2026 | Shafston International College | Weekly Tentative Enrolments Report
+<!-- ═══════════════ TAB 2: WEEKLY TRACKER ═══════════════ -->
+<div id="tab-weekly" class="tab-content">
+
+<div class="filter-bar">
+  <div class="filter-group"><label>Month</label><select id="wFilterMonth" onchange="renderWeekly()"><option value="all">All Months (2026)</option></select></div>
+  <div class="filter-group"><label>Week</label><select id="wFilterWeek" onchange="renderWeekly()"><option value="all">All Weeks</option></select></div>
+  <div class="filter-group"><label>Sales Person</label><select id="wFilterPerson" onchange="renderWeekly()"><option value="all">All Sales Persons</option></select></div>
+</div>
+
+<!-- Weekly KPIs -->
+<div class="kpi-grid" style="grid-template-columns:repeat(5,1fr)" id="weeklyKpiGrid"></div>
+
+<!-- Target Achievement -->
+<div class="target-grid" id="targetGrid"></div>
+
+<!-- Trend Charts -->
+<div class="chart-grid">
+  <div class="chart-card"><h3>Weekly Applications vs Target</h3><canvas id="chartWeeklyTrend"></canvas></div>
+  <div class="chart-card"><h3>Cumulative Applications vs Target</h3><canvas id="chartCumulative"></canvas></div>
+  <div class="chart-card"><h3>Weekly Applications by Type (U18 vs VET)</h3><canvas id="chartWeeklyType"></canvas></div>
+  <div class="chart-card"><h3>Sales Person Weekly Performance</h3><canvas id="chartSalesPerson"></canvas></div>
+</div>
+
+<!-- Weekly Detail Table -->
+<div class="table-section">
+  <h3 style="margin-bottom:12px">Weekly Breakdown</h3>
+  <div class="table-wrapper">
+    <table class="weekly-table">
+      <thead><tr>
+        <th>Week</th><th>Date Range</th><th>U18</th><th>U18 Target</th>
+        <th>VET</th><th>VET Target</th><th>Total</th><th>Total Target</th>
+        <th>+/-</th><th>Fee</th><th>Cumulative</th>
+      </tr></thead>
+      <tbody id="weeklyTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Sales Person Table -->
+<div class="table-section">
+  <h3 style="margin-bottom:12px">Sales Person Performance (2026 YTD)</h3>
+  <div class="table-wrapper">
+    <table class="weekly-table">
+      <thead><tr><th>Sales Person</th><th>U18</th><th>VET</th><th>Total</th><th>Total Fee</th><th>Avg Fee</th></tr></thead>
+      <tbody id="salesTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">Generated on: 4 March 2026 | Shafston International College | Weekly Tentative Enrolments Report</div>
 </div>
 
 <script>
-// ── Data ──
+// ══════════ DATA ══════════
 const u18Data = [["High School Preparation","Katalina GOMEZ PAREDES","Colombia","2025-10-15","2026-03-09","2026-06-26","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7200,"Monkeys","Woojeong Jeong"],["High School Preparation","Master Pattaphong PONBUMRUNGWONG","Thailand","2025-12-19","2026-03-16","2026-05-08","Brisbane (Kangaroo Point Campus)","Tentative - Offered",3300,"Eden Student and Migration Service","Pathways"],["High School Preparation","Master Nutthanut SURAWATTHANAKUL","Thailand","2025-12-19","2026-03-16","2026-05-08","Sydney (Sydney Campus)","Tentative - Confirmed",3600,"Eden Student and Migration Service","Pathways"],["High School Preparation","Satarassamee SUWANMACHO","Thailand","2026-02-09","2026-03-16","2026-05-08","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",4400,"IDP Education Pty Limited","Mika Wilson"],["High School Preparation","Thatchakorn TAISAKULTIP","Thailand","2026-01-29","2026-03-16","2026-05-08","Sydney (Sydney Campus)","Tentative - Offered",4000,"Stellar Education & Visa Centre","Mika Wilson"],["High School Preparation","Boonsita CHAYHONG","Thailand","2026-02-20","2026-03-23","2026-05-15","Sydney (Sydney Campus)","Tentative - Confirmed",4000,"The Best Language and Education Centre","Mika Wilson"],["High School Preparation","Nachi MUTO","Japan","2026-02-03","2026-03-30","2026-04-03","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",550,"DEOW Co. Ltd","Mika Wilson"],["High School Preparation","Jiacheng DONG","China (excludes SARs and Taiwan)","2026-01-29","2026-04-13","2027-01-15","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",20900,"Global fashion week pty ltd","Sophia Qiu"],["High School Preparation","Techin LEKWILAI","Thailand","2025-11-26","2026-04-20","2026-05-08","Sydney (Sydney Campus)","Tentative - Confirmed",1350,"IEC Abroad (Thailand) Co. Ltd","Tiya Li"],["High School Preparation","Nateethorn PRAIWUN","Thailand","2025-11-26","2026-04-20","2026-05-08","Sydney (Sydney Campus)","Tentative - Confirmed",1350,"IEC Abroad (Thailand) Co. Ltd","Tiya Li"],["Primary English Preparation","Junyu QIU","China (excludes SARs and Taiwan)","2025-11-28","2026-04-20","2026-06-26","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5200,"AUSTRALIAN GLOBAL IMMIGRATION EXPERTS","Tiya Li"],["Primary English Preparation","Ponpada Pak Ying SIU","Thailand","2026-01-14","2026-04-20","2026-05-08","Brisbane (Kangaroo Point Campus)","",1650,"IEC Abroad (Thailand) Co. Ltd","Tiya Li"],["High School Preparation","Atsushi TSUBAKI","Japan","2026-02-02","2026-04-20","2027-01-29","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",18150,"A-OES","Pathways"],["Shafston Young Learners Camp","Suvd DUGERJAV","Mongolia","2026-02-06","2026-07-06","2026-07-31","Brisbane (Kangaroo Point Campus)","Tentative - Offered",2700,"Eduyoung.com","Woojeong Jeong"],["Shafston Young Learners Camp","Bianca MANZOLINI","Italy","2026-02-26","2026-07-06","2026-08-07","Brisbane (Kangaroo Point Campus)","Tentative - Offered",3675,"Shafston Direct Enrolment","Tiya Li"],["Primary English Preparation","Huai-En CHANG","Taiwan","2024-08-22","2026-07-13","2026-09-18","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5000,"(AMEC) Australian Multicultural Education Centre Pty Ltd","Tiya Li"],["Shafston Young Learners Camp","Yu-Chi HUANG","Taiwan","2026-01-29","2026-07-13","2026-07-31","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",2205,"Chiao Shun international Pty Ltd","Tiya Li"],["High School Preparation","Taeyeon KIM","Korea Republic of (South)","2026-02-13","2026-07-13","2026-11-27","Brisbane (Kangaroo Point Campus)","",1000,"KOKOS KOREA","Woojeong Jeong"],["Primary English Preparation","Hyunjin PARK","Korea Republic of (South)","2026-02-04","2026-07-13","2026-08-07","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",2200,"Shafston Direct Enrolment","Woojeong Jeong"],["Primary English Preparation","Junyu QIU","China (excludes SARs and Taiwan)","2025-11-28","2026-07-13","2026-09-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",4680,"AUSTRALIAN GLOBAL IMMIGRATION EXPERTS","Tiya Li"],["High School Preparation","Vivitawin WEERASOMBUT","Thailand","2026-02-13","2026-07-13","2026-07-24","Sydney (Sydney Campus)","Tentative - Offered",1000,"AUSSIEWAY","Tiya Li"],["Shafston Young Learners Camp","Yun-Yan YEH","Taiwan","2026-01-29","2026-07-13","2026-07-31","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",2205,"Chiao Shun international Pty Ltd","Tiya Li"],["Primary English Preparation","Yaqing DENG","China (excludes SARs and Taiwan)","2026-01-21","2026-08-17","2026-09-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5500,"TRAINING AND LABOUR SOLUTION PTY LTD","Pathways"],["Primary English Preparation","Huai-En CHANG","Taiwan","2024-08-23","2026-10-05","2026-12-11","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5000,"(AMEC) Australian Multicultural Education Centre Pty Ltd","Tiya Li"],["Primary English Preparation","Yaqing DENG","China (excludes SARs and Taiwan)","2026-02-04","2026-10-05","2026-11-06","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",0,"TRAINING AND LABOUR SOLUTION PTY LTD","Pathways"]];
 const vetData = [["Certificate III in Early Childhood Education and Care","Tzu-Ling CHANG","Taiwan","2025-11-04","2026-03-02","2027-03-26","Brisbane (Kangaroo Point Campus)","Tentative - Offered",8000,"Study Central","Tiya Li"],["Diploma of Hospitality Management","Iori SUEMATSU","Japan","2025-12-05","2026-03-09","2026-08-21","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD","Pathways"],["General English","Janis PEREZ CORTINEZ","Colombia","2025-10-13","2026-03-16","2026-10-02","Sydney (Sydney Campus)","Tentative - Confirmed",6250,"One Way Australian Education",""],["Diploma of Project Management","Yujun CHENG","China (excludes SARs and Taiwan)","2025-12-08","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",9000,"WOW Education Pty Ltd","Pathways"],["Certificate III in Early Childhood Education and Care","Tatiana Belen DIAZ","Argentina","2025-06-27","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"WILL WORLD EDUCATION","Woojeong Jeong"],["Diploma of Leadership and Management","Anna HARADA","Japan","2026-01-13","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6000,"WOW Education Pty Ltd","Pathways"],["Certificate III in Early Childhood Education and Care","Laura MACENA DE OLIVEIRA","Brazil","2025-06-11","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Make international","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Noderlly MOSQUERA MOSQUERA","Colombia","2023-06-21","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"AVANTI EDUCATION AND MIGRATION","Woojeong Jeong"],["Diploma of Project Management","Valentina MUNOZ PARRA","Colombia","2023-06-14","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"Explora Education Council","Pathways"],["Diploma of Community Services","Emerson PENARANDA PEREZ","Colombia","2024-08-08","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"GLOBAL EDUCATION AUSTRALIA","Woojeong Jeong"],["Advanced Diploma of Business","Ni Luh Made Erik SEPTIARI","Indonesia","2025-08-29","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6500,"FLYAU EDUCATION PTY LTD",""],["Advanced Diploma of Business","Jia-Wei SU","Taiwan","2025-08-26","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Project Management","Yun XIA","China (excludes SARs and Taiwan)","2025-12-09","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Offered",9000,"WOW Education Pty Ltd","Pathways"],["Certificate IV in Business","Simeng ZHANG","China (excludes SARs and Taiwan)","2025-10-15","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",10000,"MONKEY KING STUDENT SERVICE CENTER PTY LTD",""],["Certificate III in Individual Support","Fu-En CHIANG","Taiwan","2026-02-09","2026-04-06","2026-10-02","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5000,"FLYAU EDUCATION PTY LTD","Pathways"],["Certificate III in Individual Support","Doris GORO","Papua New Guinea","2026-02-25","2026-04-06","2026-10-02","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5500,"FLYAU EDUCATION PTY LTD","Pathways"],["Certificate III in Individual Support","Taison KAULI","Papua New Guinea","2026-02-02","2026-04-06","2026-10-02","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5500,"FLYAU EDUCATION PTY LTD","Pathways"],["Certificate III in Individual Support","Sheng-Han TENG","Taiwan","2025-10-07","2026-04-06","2026-07-31","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5000,"ABC Education","Tiya Li"],["Diploma of Hospitality Management","Roselyn DREW","Papua New Guinea","2025-09-04","2026-04-13","2026-12-04","Gold Coast (Southport Campus)","Tentative - Confirmed",3900,"FCG PTY LTD","Pathways"],["Diploma of Hospitality Management","Dewa Gede Buda ARYSTHA","Indonesia","2025-12-01","2026-04-13","2027-09-24","Gold Coast (Southport Campus)","Tentative - Offered",14000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Hospitality Management","Melva CARHUACHIN MINAYA","Peru","2024-05-03","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"ALUMNOS INTERNACIONALES","Woojeong Jeong"],["Diploma of Hospitality Management","Barbara GONZALEZ MARTINEZ","Mexico","2024-08-02","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"GrowPro Experience Pty Ltd","Woojeong Jeong"],["Diploma of Hospitality Management","Shuhei KIKUCHI","Japan","2024-08-19","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"Australia Ryugaku Centre","Mika Wilson"],["Certificate IV in Kitchen Management","Stanley MAE","Papua New Guinea","2025-12-03","2026-04-13","2027-09-24","Gold Coast (Southport Campus)","Tentative - Offered",14000,"FCG PTY LTD","Pathways"],["Diploma of Hospitality Management","Andres Felipe MEJIA FAJARDO","Colombia","2024-05-20","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"GAIA LIFE PROJECT",""],["Diploma of Hospitality Management","Chinami MORI","Japan","2024-05-16","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"Active Woman Co. Ltd","Mika Wilson"],["Diploma of Hospitality Management","Jungmee SHIN","Korea Republic of (South)","2024-05-21","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"Baron Education","Woojeong Jeong"],["Certificate IV in Kitchen Management","Eddie VINCENT","Papua New Guinea","2025-10-07","2026-04-13","2027-09-24","Gold Coast (Southport Campus)","Tentative - Offered",14000,"FLYAU EDUCATION PTY LTD","Pathways"],["Certificate IV in Information Technology","Lina Paulus IFINA","Papua New Guinea","2026-01-28","2026-04-20","2027-05-14","Brisbane (Kangaroo Point Campus)","Tentative - Offered",10000,"FCG PTY LTD","Pathways"],["General English","Cristian Andres QUINTERO SARMIENTO","Colombia","2025-05-15","2026-05-04","2026-07-24","Brisbane (Kangaroo Point Campus)","Tentative - Offered",3420,"Monkeys","Woojeong Jeong"],["Diploma of Hospitality Management","Ida Ayu Pertiwi ARIYASA","Indonesia","2025-08-29","2026-05-11","2027-01-01","Gold Coast (Southport Campus)","Tentative - Confirmed",5900,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Hospitality Management","Kay-Yu WU","Taiwan","2025-08-29","2026-05-11","2027-01-01","Gold Coast (Southport Campus)","Tentative - Confirmed",5900,"FLYAU EDUCATION PTY LTD","Pathways"],["Shafston Flexi Cambridge - FCE","Mizuho HOKA","Japan","2025-01-16","2026-05-18","2026-08-07","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",4260,"Last Resort Australia","Mika Wilson"],["Diploma of Information Technology","Punnaphat CHUENJAROEN","Thailand","2024-12-04","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7500,"SOL EDU Pty Ltd","Mika Wilson"],["Diploma of Early Childhood Education and Care","Paolo DURANDAL VALDES","Chile","2025-03-11","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Dingoos Australia Pty. Ltd.","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Natalia Hernandez Bedoya","Colombia","2025-03-17","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Helpmate Student Agency",""],["Diploma of Early Childhood Education and Care","Wing Yan LAM","Hong Kong (SAR of China)","2024-08-16","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"ACIC Pty Ltd",""],["Diploma of Early Childhood Education and Care","Jaqueline VARGAS","Brazil","2025-04-10","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Connection Australia Student Services",""],["Diploma of Early Childhood Education and Care","Mesawadee YAMAPAI","Thailand","2024-12-13","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",9000,"i-Believe Study Abroad",""],["Diploma of Community Services","Kelzy Mart Gabrielle DOLLOSO","Philippines","2026-02-12","2026-06-22","2027-07-16","Brisbane (Kangaroo Point Campus)","Tentative - Offered",11000,"Shafston Direct Enrolment","Pathways"],["Diploma of Community Services","Hyosu KIM","Korea Republic of (South)","2026-02-09","2026-06-22","2027-07-16","Brisbane (Kangaroo Point Campus)","Tentative - Offered",11000,"QB GLOBAL","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Priscila SILVA","Brazil","2025-02-14","2026-06-22","2027-07-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"BUENO EDUCATION",""],["Certificate III in Individual Support","Ayano TOMIYAMA","Japan","2025-07-11","2026-06-29","2026-10-23","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5000,"Mirai Bridge","Mika Wilson"],["Diploma of Hospitality Management","Sangmoon SON","Korea Republic of (South)","2024-06-13","2026-07-06","2026-12-18","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"SOL EDU Pty Ltd",""],["Diploma of Hospitality Management","Hong Chi VU","Vietnam","2026-02-02","2026-07-06","2027-12-17","Gold Coast (Southport Campus)","Tentative - Offered",16000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Early Childhood Education and Care","Widad BAEZ SUAREZ","Colombia","2023-06-08","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"One Way Australian Education",""],["Diploma of Project Management","Angela CHAVEZ PINEROS","Colombia","2025-05-12","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6500,"Migrate",""],["Advanced Diploma of Business","Kiat Poh FAU","Malaysia","2025-09-04","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Community Services","Karla MARTE ARAQUE","Venezuela","2025-08-15","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"WILL WORLD EDUCATION",""],["Diploma of Information Technology","Wilsinton ORTEGA VEGA","Ecuador","2024-12-18","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7500,"LIIV MIGRATION",""],["Shafston Flexi Cambridge","Cristian Andres QUINTERO SARMIENTO","Colombia","2025-05-15","2026-07-27","2027-01-22","Brisbane (Kangaroo Point Campus)","Tentative - Offered",6840,"Monkeys","Woojeong Jeong"],["Diploma of Community Services","Maria Fernanda YEPEZ TUFINO","Spain","2025-09-30","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Dingoos Australia Pty. Ltd.",""],["Diploma of Early Childhood Education and Care","Dauany BARBOZA","Brazil","2025-05-16","2026-08-17","2027-09-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Tagarela Intercambios",""],["Certificate III in Early Childhood Education and Care","Belen RONCERO LOPEZ","Spain","2025-12-08","2026-08-17","2027-09-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Experience Australia","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Diana TAPIA NETO","Ecuador","2025-02-21","2026-08-17","2027-09-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Go Study Australia Pty Ltd",""],["Diploma of Hospitality Management","Kang-Yu CHANG","Taiwan","2025-09-02","2026-09-14","2027-05-07","Gold Coast (Southport Campus)","Tentative - Confirmed",4400,"Elite AUS Migration and Education Consultancy",""],["Advanced Diploma of Business","Sheng-Lun TU","Taiwan","2025-08-29","2026-09-14","2027-09-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6500,"FLYAU EDUCATION PTY LTD",""],["Certificate III in Individual Support","Choeun KIM","Korea Republic of (South)","2025-08-01","2026-09-21","2027-01-29","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5000,"KOKOS KOREA","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Thi Nhu Y BUI","Vietnam","2024-05-27","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6000,"BCI Education",""],["Diploma of Information Technology","Wander Lucio DOS ANJOS SANTOS","Brazil","2025-04-14","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7500,"Hello Australia/ Hello Study",""],["Diploma of Early Childhood Education and Care","Mayra FERNANDEZ CAICEDO","Colombia","2025-04-02","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Australia Student Recruitment",""],["Diploma of Information Technology","Beatriz MORATO SILVA CAMARGO","Brazil","2025-05-27","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7500,"Hello Australia/ Hello Study",""],["Certificate III in Early Childhood Education and Care","Keli Yesari MURILLO MENA","Colombia","2025-06-04","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Global Connection",""],["Diploma of Hospitality Management","Sara SANTOS AGUILAR","Colombia","2025-05-23","2026-09-28","2027-03-12","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"Migrate",""],["Diploma of Early Childhood Education and Care","Jessica Frine SOBERANIS HIDALGO","Mexico","2025-10-01","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"YouTOOProject",""],["Diploma of Community Services","Fu-En CHIANG","Taiwan","2026-02-09","2026-10-19","2027-11-12","Brisbane (Kangaroo Point Campus)","Tentative - Offered",9000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Community Services","Doris GORO","Papua New Guinea","2026-02-27","2026-10-19","2027-11-12","Brisbane (Kangaroo Point Campus)","Tentative - Offered",9500,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Community Services","Taison KAULI","Papua New Guinea","2026-02-02","2026-10-19","2027-11-12","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",9500,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Early Childhood Education and Care","Laura ALFONSO MONROY","Colombia","2025-07-29","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"LIIV MIGRATION",""],["Diploma of Early Childhood Education and Care","Mayara DA SILVA","Brazil","2025-06-24","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Fernandes Migration",""],["Diploma of Early Childhood Education and Care","Monica MOJICA MACIAS","Colombia","2024-02-14","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"VETA",""],["Diploma of Early Childhood Education and Care","Luize PERES FERREIRA","Brazil","2025-07-30","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Connection Australia Student Services",""],["Diploma of Early Childhood Education and Care","Konomi YAMANAKA","Japan","2025-07-04","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"Shafston Direct Enrolment",""],["Diploma of Hospitality Management","Ni Putu Ayu Sri DIANAWATI","Indonesia","2025-08-29","2027-01-11","2027-09-03","Gold Coast (Southport Campus)","Tentative - Confirmed",6000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Early Childhood Education and Care","Flavia DOURADO OLIVEIRA","Brazil","2025-05-15","2027-01-11","2028-02-04","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Hello Australia/ Hello Study",""],["Diploma of Hospitality Management","Shih-Hao WANG","Taiwan","2025-08-29","2027-01-11","2027-09-03","Gold Coast (Southport Campus)","Tentative - Confirmed",5900,"FLYAU EDUCATION PTY LTD",""],["Diploma of Early Childhood Education and Care","Chisaki YAMAHATA","Japan","2025-06-30","2027-01-11","2028-02-04","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"SOL EDU Pty Ltd",""],["Advanced Diploma of Business","Ida Ayu Pertiwi ARIYASA","Indonesia","2026-01-14","2027-01-18","2028-02-11","Brisbane (Kangaroo Point Campus)","Tentative - Offered",10000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Information Technology","Alvine TOHVER","Estonia","2025-07-23","2027-01-18","2028-02-11","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",9000,"Shafston Direct Enrolment",""],["Diploma of Project Management","Laura ZUNIGA VIVAS","Colombia","2024-03-04","2027-01-18","2028-02-11","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",4900,"PROSTUDY AUSTRALIA",""],["Diploma of Early Childhood Education and Care","Anai Romina HERRERA PEREZ","Ecuador","2025-11-03","2027-02-15","2028-03-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"(LAE) Latino Australia Education SAS",""],["Diploma of Early Childhood Education and Care","Karen DE SOUZA POTER","Brazil","2025-07-15","2027-03-15","2028-04-07","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Fernandes Migration",""],["Diploma of Early Childhood Education and Care","Alicia KUHN NUNES","Brazil","2025-06-10","2027-03-15","2028-04-07","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Just Go Agency",""],["Diploma of Hospitality Management","Leovigildo ABELLO RODRIGUEZ","Colombia","2024-05-28","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"A4S - AGENCY FOR STUDENTS",""],["Diploma of Hospitality Management","I Komang Bagia ANTARA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ni Komang Ratih BIANTARI","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Oi Lin CHAN","Hong Kong (SAR of China)","2024-05-24","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"Connect Education Network Pty Ltd",""],["Diploma of Hospitality Management","I Putu Aditya KARDITHA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ngakan Putu Agusta Cahyadi PUTRA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","I Made SUBRATA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Dewa Gde Aditya WIJAYA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","I Gusti Agung Gede Puspa YOGA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Early Childhood Education and Care","Tzu-Ling CHANG","Taiwan","2025-11-04","2027-04-19","2028-05-12","Brisbane (Kangaroo Point Campus)","Tentative - Offered",8000,"Study Central","Tiya Li"],["Diploma of Information Technology","Natasha HASIMA","Papua New Guinea","2025-09-30","2027-04-19","2028-05-12","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",10000,"FCG PTY LTD","Pathways"],["Advanced Diploma of Business","Yujun CHENG","China (excludes SARs and Taiwan)","2025-12-08","2027-05-03","2028-05-26","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",10000,"WOW Education Pty Ltd","Pathways"],["Advanced Diploma of Business","Yun XIA","China (excludes SARs and Taiwan)","2025-12-09","2027-05-03","2028-05-26","Brisbane (Kangaroo Point Campus)","Tentative - Offered",10000,"WOW Education Pty Ltd","Pathways"],["Diploma of Early Childhood Education and Care","Tatiana Belen DIAZ","Argentina","2025-06-27","2027-05-24","2028-06-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"WILL WORLD EDUCATION","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Laura MACENA DE OLIVEIRA","Brazil","2025-06-12","2027-05-24","2028-06-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Make international","Woojeong Jeong"],["Diploma of Information Technology","Lina Paulus IFINA","Papua New Guinea","2026-01-28","2027-06-07","2028-06-30","Brisbane (Kangaroo Point Campus)","Tentative - Offered",10000,"FCG PTY LTD","Pathways"],["Diploma of Hospitality Management","Chia-Hui CHIANG","Taiwan","2025-11-18","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Jinghan DENG","China (excludes SARs and Taiwan)","2025-11-21","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ni Kadek Nayra FRANNINDYA","Indonesia","2025-08-25","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","I Gede Andika KRISNATA","Indonesia","2025-08-25","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ricky Dwi PAMBUDI","Indonesia","2025-08-25","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ni Wayan VIRAYANTI","Indonesia","2025-09-01","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Eka Aprilia WIDIARTO","Indonesia","2025-08-25","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Wenzhile WU","China (excludes SARs and Taiwan)","2025-09-17","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Eddie VINCENT","Papua New Guinea","2025-10-08","2027-09-27","2028-03-10","Gold Coast (Southport Campus)","Tentative - Offered",4000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Hospitality Management","Stanley MAE","Papua New Guinea","2025-12-03","2027-10-25","2028-04-07","Gold Coast (Southport Campus)","Tentative - Offered",4000,"FCG PTY LTD","Pathways"],["Diploma of Early Childhood Education and Care","Belen RONCERO LOPEZ","Spain","2025-12-08","2027-10-25","2028-11-17","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Experience Australia","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Keli Yesari MURILLO MENA","Colombia","2025-06-05","2027-11-22","2028-12-15","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Global Connection",""]];
 const COLORS = ['#38bdf8','#818cf8','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c','#22d3ee','#e879f9','#4ade80'];
@@ -186,15 +234,87 @@ const charts = {};
 let currentTab = 'all';
 let sortCol = -1, sortAsc = true;
 
-// ── Filters ──
-function initFilters() {
+// ══════════ ANNUAL PLAN TARGETS ══════════
+const WEEKLY_TARGET_U18 = 7;
+const WEEKLY_TARGET_VET = 5;
+const WEEKLY_TARGET_TOTAL = WEEKLY_TARGET_U18 + WEEKLY_TARGET_VET;
+// Revenue targets from Annual Plan: Income-International = $1.7M
+const ANNUAL_TARGET_VET = { count: WEEKLY_TARGET_VET * 52, revenue: 900000, label: 'VET Programs' };
+const ANNUAL_TARGET_HSP_PEP = { count: WEEKLY_TARGET_U18 * 52, revenue: 500000, label: 'HSP / PEP' };
+const ANNUAL_TARGET_YLC = { revenue: 300000, label: 'Young Learner Camp' };
+
+// ══════════ CLASSIFICATION ══════════
+function qualType(name) {
+  const l = name.toLowerCase();
+  if (l.includes('high school preparation')) return 'HSP';
+  if (l.includes('primary english preparation')) return 'PEP';
+  if (l.includes('young learner')) return 'YLC';
+  return 'VET';
+}
+function isU18Qual(name) { const t = qualType(name); return t === 'HSP' || t === 'PEP' || t === 'YLC'; }
+
+// ══════════ WEEK HELPERS ══════════
+function getWeekMonday(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const mon = new Date(d);
+  mon.setDate(diff);
+  return mon;
+}
+function fmtDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function fmtShort(d) {
+  const ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate() + ' ' + ms[d.getMonth()];
+}
+function getWeekNum(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const start = new Date(d.getFullYear(), 0, 1);
+  const diff = (d - start) / 86400000;
+  return Math.ceil((diff + start.getDay() + 1) / 7);
+}
+
+// Build weekly data for 2026
+function buildWeeklyData() {
+  const all = [...u18Data, ...vetData];
+  const records2026 = all.filter(r => r[3] && r[3].startsWith('2026'));
+  const weekMap = {};
+  records2026.forEach(r => {
+    const mon = getWeekMonday(r[3]);
+    const key = fmtDate(mon);
+    if (!weekMap[key]) {
+      const sun = new Date(mon);
+      sun.setDate(sun.getDate() + 6);
+      weekMap[key] = { monday: mon, sunday: sun, key, u18: 0, vet: 0, fee: 0, records: [], weekNum: getWeekNum(r[3]) };
+    }
+    const w = weekMap[key];
+    if (isU18Qual(r[0])) w.u18++; else w.vet++;
+    w.fee += r[8];
+    w.records.push(r);
+  });
+  return Object.values(weekMap).sort((a,b) => a.key.localeCompare(b.key));
+}
+
+// ══════════ MAIN TAB SWITCH ══════════
+function switchMainTab(tab) {
+  document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'weekly') renderWeekly();
+}
+
+// ══════════════════════════════════════════
+//  TAB 1: OVERVIEW
+// ══════════════════════════════════════════
+function initOverviewFilters() {
   const all = [...u18Data, ...vetData];
   const locs = [...new Set(all.map(r => r[6]).filter(Boolean))].sort();
   const countries = [...new Set(all.map(r => r[2]).filter(Boolean))].sort();
-  const locSel = document.getElementById('filterLocation');
-  const ctrSel = document.getElementById('filterCountry');
-  locSel.innerHTML = '<option value="all">All Locations</option>' + locs.map(l => '<option value="' + l + '">' + l + '</option>').join('');
-  ctrSel.innerHTML = '<option value="all">All Countries</option>' + countries.map(c => '<option value="' + c + '">' + c + '</option>').join('');
+  document.getElementById('filterLocation').innerHTML = '<option value="all">All Locations</option>' + locs.map(l => '<option value="'+l+'">'+l+'</option>').join('');
+  document.getElementById('filterCountry').innerHTML = '<option value="all">All Countries</option>' + countries.map(c => '<option value="'+c+'">'+c+'</option>').join('');
 }
 
 function getFiltered() {
@@ -209,308 +329,322 @@ function getFiltered() {
   return data;
 }
 
-// ── Utility ──
-function countBy(data, idx) {
-  const m = {};
-  data.forEach(r => { const k = r[idx] || '(blank)'; m[k] = (m[k] || 0) + 1; });
-  return m;
-}
-function sumBy(data, idx, valIdx) {
-  const m = {};
-  data.forEach(r => { const k = r[idx] || '(blank)'; m[k] = (m[k] || 0) + r[valIdx]; });
-  return m;
-}
-function topN(obj, n) {
-  const entries = Object.entries(obj).sort((a, b) => b[1] - a[1]);
-  return { labels: entries.slice(0, n).map(e => e[0]), values: entries.slice(0, n).map(e => e[1]) };
-}
-function fmtCurrency(v) { return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
-function statusClass(s) {
-  const l = s.toLowerCase();
-  if (l.includes('confirmed')) return 'confirmed';
-  if (l.includes('offered')) return 'offered';
-  if (l.includes('pending')) return 'pending';
-  return 'other';
-}
+function countBy(data, idx) { const m = {}; data.forEach(r => { const k = r[idx] || '(blank)'; m[k] = (m[k]||0)+1; }); return m; }
+function sumBy(data, idx, valIdx) { const m = {}; data.forEach(r => { const k = r[idx] || '(blank)'; m[k] = (m[k]||0)+r[valIdx]; }); return m; }
+function topN(obj, n) { const e = Object.entries(obj).sort((a,b) => b[1]-a[1]); return { labels: e.slice(0,n).map(x=>x[0]), values: e.slice(0,n).map(x=>x[1]) }; }
+function fmtCurrency(v) { return '$' + v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function statusClass(s) { const l=s.toLowerCase(); if(l.includes('confirmed'))return'confirmed'; if(l.includes('offered'))return'offered'; if(l.includes('pending'))return'pending'; return'other'; }
 
-// ── Progress Bar ──
 function renderProgressBar(data) {
-  const total = data.length;
-  const confirmed = data.filter(r => r[7].toLowerCase().includes('confirmed')).length;
-  const offered = data.filter(r => r[7].toLowerCase().includes('offered')).length;
-  const pending = data.filter(r => r[7].toLowerCase().includes('pending')).length;
-  const other = total - confirmed - offered - pending;
-  document.getElementById('progressTotal').textContent = total + ' Total Enrolments';
-  const bar = document.getElementById('progressBar');
-  bar.innerHTML = '';
-  const segs = [
-    { cls: 'seg-confirmed', val: confirmed, label: 'Confirmed' },
-    { cls: 'seg-offered', val: offered, label: 'Offered' },
-    { cls: 'seg-pending', val: pending, label: 'Pending' },
-  ];
-  if (other > 0) segs.push({ cls: 'seg-other', val: other, label: 'Other' });
-  segs.forEach(s => {
-    if (s.val === 0) return;
-    const pct = (s.val / total * 100);
-    const el = document.createElement('div');
-    el.className = 'seg ' + s.cls;
-    el.style.width = pct + '%';
-    el.textContent = s.val + ' (' + Math.round(pct) + '%)';
-    bar.appendChild(el);
-  });
-  const legend = document.getElementById('progressLegend');
-  legend.innerHTML = segs.map(s => '<span><span class="dot" style="background:' +
-    (s.cls === 'seg-confirmed' ? '#34d399' : s.cls === 'seg-offered' ? '#38bdf8' : s.cls === 'seg-pending' ? '#fbbf24' : '#6b7280') +
-    '"></span>' + s.label + ': ' + s.val + '</span>').join('');
+  const total=data.length;
+  const confirmed=data.filter(r=>r[7].toLowerCase().includes('confirmed')).length;
+  const offered=data.filter(r=>r[7].toLowerCase().includes('offered')).length;
+  const pending=data.filter(r=>r[7].toLowerCase().includes('pending')).length;
+  const other=total-confirmed-offered-pending;
+  document.getElementById('progressTotal').textContent=total+' Total Enrolments';
+  const bar=document.getElementById('progressBar');
+  bar.innerHTML='';
+  const segs=[{cls:'seg-confirmed',val:confirmed,label:'Confirmed'},{cls:'seg-offered',val:offered,label:'Offered'},{cls:'seg-pending',val:pending,label:'Pending'}];
+  if(other>0) segs.push({cls:'seg-other',val:other,label:'Other'});
+  segs.forEach(s=>{if(s.val===0)return;const pct=s.val/total*100;const el=document.createElement('div');el.className='seg '+s.cls;el.style.width=pct+'%';el.textContent=s.val+' ('+Math.round(pct)+'%)';bar.appendChild(el);});
+  const colors={confirmed:'#34d399',offered:'#38bdf8',pending:'#fbbf24',other:'#6b7280'};
+  document.getElementById('progressLegend').innerHTML=segs.map(s=>'<span><span class="dot" style="background:'+colors[s.cls.replace('seg-','')]+'"></span>'+s.label+': '+s.val+'</span>').join('');
 }
 
-// ── KPI Cards ──
 function renderKPIs(data) {
-  const total = data.length;
-  const confirmed = data.filter(r => r[7].toLowerCase().includes('confirmed')).length;
-  const offered = data.filter(r => r[7].toLowerCase().includes('offered')).length;
-  const pending = data.filter(r => r[7].toLowerCase().includes('pending')).length;
-  const totalFee = data.reduce((s, r) => s + r[8], 0);
-  const countries = new Set(data.map(r => r[2]).filter(Boolean)).size;
-  const avgFee = total > 0 ? totalFee / total : 0;
-  const cards = [
-    { label: 'Total Enrolments', value: total, color: '#38bdf8', sub: 'U18: ' + data.filter(r => u18Data.includes(r)).length + ' | VET: ' + data.filter(r => vetData.includes(r)).length },
-    { label: 'Confirmed', value: confirmed, color: '#34d399', sub: total > 0 ? Math.round(confirmed/total*100) + '% of total' : '' },
-    { label: 'Offered', value: offered, color: '#fbbf24', sub: total > 0 ? Math.round(offered/total*100) + '% of total' : '' },
-    { label: 'Pending', value: pending, color: '#fb923c', sub: total > 0 ? Math.round(pending/total*100) + '% of total' : '' },
-    { label: 'Total Tuition Fee', value: fmtCurrency(totalFee), color: '#818cf8', sub: 'Avg: ' + fmtCurrency(Math.round(avgFee)) + ' per student' },
-    { label: 'Unique Countries', value: countries, color: '#22d3ee', sub: 'Diverse student body' },
+  const total=data.length,confirmed=data.filter(r=>r[7].toLowerCase().includes('confirmed')).length;
+  const offered=data.filter(r=>r[7].toLowerCase().includes('offered')).length;
+  const pending=data.filter(r=>r[7].toLowerCase().includes('pending')).length;
+  const totalFee=data.reduce((s,r)=>s+r[8],0);
+  const countries=new Set(data.map(r=>r[2]).filter(Boolean)).size;
+  const avgFee=total>0?totalFee/total:0;
+  const u18c=data.filter(r=>isU18Qual(r[0])).length,vetc=total-u18c;
+  const cards=[
+    {label:'Total Enrolments',value:total,color:'#38bdf8',sub:'U18: '+u18c+' | VET: '+vetc},
+    {label:'Confirmed',value:confirmed,color:'#34d399',sub:total>0?Math.round(confirmed/total*100)+'% of total':''},
+    {label:'Offered',value:offered,color:'#fbbf24',sub:total>0?Math.round(offered/total*100)+'% of total':''},
+    {label:'Pending',value:pending,color:'#fb923c',sub:total>0?Math.round(pending/total*100)+'% of total':''},
+    {label:'Total Tuition Fee',value:fmtCurrency(totalFee),color:'#818cf8',sub:'Avg: '+fmtCurrency(Math.round(avgFee))+'/student'},
+    {label:'Unique Countries',value:countries,color:'#22d3ee',sub:'Diverse student body'},
   ];
-  document.getElementById('kpiGrid').innerHTML = cards.map(c =>
-    '<div class="kpi-card"><div class="kpi-label">' + c.label + '</div><div class="kpi-value" style="color:' + c.color + '">' + c.value + '</div><div class="kpi-sub">' + c.sub + '</div></div>'
-  ).join('');
+  document.getElementById('kpiGrid').innerHTML=cards.map(c=>'<div class="kpi-card"><div class="kpi-label">'+c.label+'</div><div class="kpi-value" style="color:'+c.color+'">'+c.value+'</div><div class="kpi-sub">'+c.sub+'</div></div>').join('');
 }
 
-// ── Chart Helpers ──
 function makeChart(id, type, labels, datasets, opts) {
-  const ctx = document.getElementById(id).getContext('2d');
-  if (charts[id]) charts[id].destroy();
-  const defaults = {
-    responsive: true, maintainAspectRatio: true,
-    plugins: { legend: { display: type === 'doughnut', labels: { color: '#94a3b8', font: { size: 11 } } } },
-    scales: type === 'doughnut' ? {} : {
-      x: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: '#1e293b' } },
-      y: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: '#1e293b' } }
-    }
-  };
-  charts[id] = new Chart(ctx, { type, data: { labels, datasets }, options: Object.assign(defaults, opts || {}) });
-}
-
-// ── Render All ──
-function renderAll() {
-  const data = getFiltered();
-  renderProgressBar(data);
-  renderKPIs(data);
-  renderCharts(data);
-  renderInsights(data);
-  renderTable();
+  const ctx=document.getElementById(id);if(!ctx)return;
+  if(charts[id])charts[id].destroy();
+  const defs={responsive:true,maintainAspectRatio:true,plugins:{legend:{display:type==='doughnut',labels:{color:'#94a3b8',font:{size:11}}}},
+    scales:type==='doughnut'?{}:{x:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'#1e293b'}},y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'#1e293b'}}}};
+  charts[id]=new Chart(ctx,{type,data:{labels,datasets},options:Object.assign(defs,opts||{})});
 }
 
 function renderCharts(data) {
-  // 1. Status Distribution (Doughnut)
-  const statusCounts = countBy(data, 7);
-  const statusLabels = Object.keys(statusCounts);
-  makeChart('chartStatus', 'doughnut', statusLabels,
-    [{ data: Object.values(statusCounts), backgroundColor: COLORS.slice(0, statusLabels.length), borderWidth: 0 }],
-    { plugins: { legend: { display: true, position: 'right' } } }
-  );
-
-  // 2. Top 10 Countries (Horizontal Bar)
-  const cc = topN(countBy(data, 2), 10);
-  makeChart('chartCountries', 'bar', cc.labels,
-    [{ label: 'Enrolments', data: cc.values, backgroundColor: '#38bdf8', borderRadius: 4 }],
-    { indexAxis: 'y', plugins: { legend: { display: false } } }
-  );
-
-  // 3. Delivery Location (Doughnut)
-  const locCounts = countBy(data, 6);
-  makeChart('chartLocation', 'doughnut', Object.keys(locCounts),
-    [{ data: Object.values(locCounts), backgroundColor: ['#38bdf8','#818cf8','#34d399','#fbbf24','#f87171'], borderWidth: 0 }],
-    { plugins: { legend: { display: true, position: 'right' } } }
-  );
-
-  // 4. Top 10 Qualifications (Horizontal Bar)
-  const qc = topN(countBy(data, 0), 10);
-  makeChart('chartQuals', 'bar', qc.labels,
-    [{ label: 'Enrolments', data: qc.values, backgroundColor: '#818cf8', borderRadius: 4 }],
-    { indexAxis: 'y', plugins: { legend: { display: false } },
-      scales: { y: { ticks: { color: '#94a3b8', font: { size: 10 }, callback: function(v) { const l = this.getLabelForValue(v); return l.length > 30 ? l.substring(0,30)+'...' : l; } }, grid: { color: '#1e293b' } },
-               x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } } } }
-  );
-
-  // 5. Top 10 Agents (Horizontal Bar)
-  const ac = topN(countBy(data, 9), 10);
-  makeChart('chartAgents', 'bar', ac.labels,
-    [{ label: 'Enrolments', data: ac.values, backgroundColor: '#34d399', borderRadius: 4 }],
-    { indexAxis: 'y', plugins: { legend: { display: false } },
-      scales: { y: { ticks: { color: '#94a3b8', font: { size: 10 }, callback: function(v) { const l = this.getLabelForValue(v); return l.length > 28 ? l.substring(0,28)+'...' : l; } }, grid: { color: '#1e293b' } },
-               x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } } } }
-  );
-
-  // 6. Officer Workload (Vertical Bar)
-  const oc = countBy(data, 10);
-  const officerLabels = Object.keys(oc).filter(k => k !== '(blank)').sort((a,b) => oc[b] - oc[a]);
-  makeChart('chartOfficers', 'bar', officerLabels,
-    [{ label: 'Enrolments', data: officerLabels.map(l => oc[l]), backgroundColor: COLORS.slice(0, officerLabels.length), borderRadius: 4 }],
-    { plugins: { legend: { display: false } } }
-  );
-
-  // 7. Commencement Timeline (Stacked Bar by Month)
-  const monthMap = {};
-  data.forEach(r => {
-    if (!r[4]) return;
-    const ym = r[4].substring(0, 7);
-    const sc = statusClass(r[7]);
-    if (!monthMap[ym]) monthMap[ym] = { confirmed: 0, offered: 0, pending: 0, other: 0 };
-    monthMap[ym][sc]++;
-  });
-  const timeLabels = Object.keys(monthMap).sort();
-  makeChart('chartTimeline', 'bar', timeLabels, [
-    { label: 'Confirmed', data: timeLabels.map(m => monthMap[m].confirmed), backgroundColor: '#34d399', borderRadius: 2 },
-    { label: 'Offered', data: timeLabels.map(m => monthMap[m].offered), backgroundColor: '#38bdf8', borderRadius: 2 },
-    { label: 'Pending', data: timeLabels.map(m => monthMap[m].pending), backgroundColor: '#fbbf24', borderRadius: 2 },
-    { label: 'Other', data: timeLabels.map(m => monthMap[m].other || 0), backgroundColor: '#6b7280', borderRadius: 2 },
-  ], { plugins: { legend: { display: true, labels: { color: '#94a3b8' } } }, scales: {
-    x: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
-    y: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } } } }
-  );
-
-  // 8. Fee by Country (Horizontal Bar)
-  const fc = topN(sumBy(data, 2, 8), 10);
-  makeChart('chartFeeCountry', 'bar', fc.labels,
-    [{ label: 'Tuition Fee', data: fc.values, backgroundColor: '#fbbf24', borderRadius: 4 }],
-    { indexAxis: 'y', plugins: { legend: { display: false } },
-      scales: { x: { ticks: { color: '#94a3b8', callback: v => '$' + (v/1000).toFixed(0) + 'k' }, grid: { color: '#1e293b' } },
-               y: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: '#1e293b' } } } }
-  );
+  const sc=countBy(data,7),sl=Object.keys(sc);
+  makeChart('chartStatus','doughnut',sl,[{data:Object.values(sc),backgroundColor:COLORS.slice(0,sl.length),borderWidth:0}],{plugins:{legend:{display:true,position:'right'}}});
+  const cc=topN(countBy(data,2),10);
+  makeChart('chartCountries','bar',cc.labels,[{label:'Enrolments',data:cc.values,backgroundColor:'#38bdf8',borderRadius:4}],{indexAxis:'y',plugins:{legend:{display:false}}});
+  const lc=countBy(data,6);
+  makeChart('chartLocation','doughnut',Object.keys(lc),[{data:Object.values(lc),backgroundColor:['#38bdf8','#818cf8','#34d399','#fbbf24','#f87171'],borderWidth:0}],{plugins:{legend:{display:true,position:'right'}}});
+  const qc=topN(countBy(data,0),10);
+  makeChart('chartQuals','bar',qc.labels,[{label:'Enrolments',data:qc.values,backgroundColor:'#818cf8',borderRadius:4}],
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#94a3b8',font:{size:10},callback:function(v){const l=this.getLabelForValue(v);return l.length>30?l.substring(0,30)+'...':l}},grid:{color:'#1e293b'}},x:{ticks:{color:'#94a3b8'},grid:{color:'#1e293b'}}}});
+  const ac=topN(countBy(data,9),10);
+  makeChart('chartAgents','bar',ac.labels,[{label:'Enrolments',data:ac.values,backgroundColor:'#34d399',borderRadius:4}],
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#94a3b8',font:{size:10},callback:function(v){const l=this.getLabelForValue(v);return l.length>28?l.substring(0,28)+'...':l}},grid:{color:'#1e293b'}},x:{ticks:{color:'#94a3b8'},grid:{color:'#1e293b'}}}});
+  const oc=countBy(data,10);
+  const ol=Object.keys(oc).filter(k=>k!=='(blank)').sort((a,b)=>oc[b]-oc[a]);
+  makeChart('chartOfficers','bar',ol,[{label:'Enrolments',data:ol.map(l=>oc[l]),backgroundColor:COLORS.slice(0,ol.length),borderRadius:4}],{plugins:{legend:{display:false}}});
+  const mm={};
+  data.forEach(r=>{if(!r[4])return;const ym=r[4].substring(0,7);const s=statusClass(r[7]);if(!mm[ym])mm[ym]={confirmed:0,offered:0,pending:0,other:0};mm[ym][s]++;});
+  const tl=Object.keys(mm).sort();
+  makeChart('chartTimeline','bar',tl,[
+    {label:'Confirmed',data:tl.map(m=>mm[m].confirmed),backgroundColor:'#34d399',borderRadius:2},
+    {label:'Offered',data:tl.map(m=>mm[m].offered),backgroundColor:'#38bdf8',borderRadius:2},
+    {label:'Pending',data:tl.map(m=>mm[m].pending),backgroundColor:'#fbbf24',borderRadius:2},
+    {label:'Other',data:tl.map(m=>mm[m].other||0),backgroundColor:'#6b7280',borderRadius:2},
+  ],{plugins:{legend:{display:true,labels:{color:'#94a3b8'}}},scales:{x:{stacked:true,ticks:{color:'#94a3b8'},grid:{color:'#1e293b'}},y:{stacked:true,ticks:{color:'#94a3b8'},grid:{color:'#1e293b'}}}});
+  const fc=topN(sumBy(data,2,8),10);
+  makeChart('chartFeeCountry','bar',fc.labels,[{label:'Tuition Fee',data:fc.values,backgroundColor:'#fbbf24',borderRadius:4}],
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94a3b8',callback:v=>'$'+(v/1000).toFixed(0)+'k'},grid:{color:'#1e293b'}},y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'#1e293b'}}}});
 }
 
-// ── Pipeline Insights ──
 function renderInsights(data) {
-  const total = data.length;
-  if (total === 0) { document.getElementById('insightsGrid').innerHTML = '<p style="color:#64748b">No data to analyse.</p>'; return; }
-
-  const totalFee = data.reduce((s, r) => s + r[8], 0);
-  const confirmed = data.filter(r => r[7].toLowerCase().includes('confirmed')).length;
-  const confirmRate = Math.round(confirmed / total * 100);
-
-  // Top country
-  const cc = countBy(data, 2);
-  const topCountry = Object.entries(cc).sort((a,b) => b[1]-a[1])[0];
-
-  // Top agent
-  const ac = countBy(data, 9);
-  const topAgent = Object.entries(ac).filter(e => e[0] !== '(blank)').sort((a,b) => b[1]-a[1])[0];
-
-  // Start date analysis
-  const now = new Date();
-  const upcoming30 = data.filter(r => { if (!r[4]) return false; const d = new Date(r[4]); return d >= now && d <= new Date(now.getTime() + 30*86400000); }).length;
-  const upcoming90 = data.filter(r => { if (!r[4]) return false; const d = new Date(r[4]); return d >= now && d <= new Date(now.getTime() + 90*86400000); }).length;
-
-  // Average study duration
-  const durations = data.filter(r => r[4] && r[5]).map(r => {
-    const s = new Date(r[4]); const e = new Date(r[5]);
-    return (e - s) / (1000 * 60 * 60 * 24 * 30.44);
-  }).filter(d => d > 0);
-  const avgDuration = durations.length > 0 ? (durations.reduce((a,b) => a+b, 0) / durations.length).toFixed(1) : 'N/A';
-
-  // Highest fee student
-  const maxFeeRow = data.reduce((best, r) => r[8] > best[8] ? r : best, data[0]);
-
-  // Fee by program type
-  const u18Fee = data.filter(r => u18Data.includes(r)).reduce((s,r) => s+r[8], 0);
-  const vetFee = data.filter(r => vetData.includes(r)).reduce((s,r) => s+r[8], 0);
-
-  const insights = [
-    { label: 'Confirmation Rate', value: confirmRate + '%', detail: confirmed + ' of ' + total + ' enrolments confirmed', color: '#34d399' },
-    { label: 'Top Source Country', value: topCountry ? topCountry[0] : 'N/A', detail: topCountry ? topCountry[1] + ' enrolments (' + Math.round(topCountry[1]/total*100) + '%)' : '', color: '#38bdf8' },
-    { label: 'Top Agent', value: topAgent ? (topAgent[0].length > 20 ? topAgent[0].substring(0,20)+'...' : topAgent[0]) : 'N/A', detail: topAgent ? topAgent[1] + ' enrolments' : '', color: '#818cf8' },
-    { label: 'Starting Within 30 Days', value: upcoming30, detail: upcoming90 + ' within 90 days', color: '#fbbf24' },
-    { label: 'Avg Study Duration', value: avgDuration + ' months', detail: 'Based on start to end dates', color: '#a78bfa' },
-    { label: 'Highest Fee', value: fmtCurrency(maxFeeRow[8]), detail: maxFeeRow[1] + ' — ' + maxFeeRow[0].substring(0,30), color: '#fb923c' },
-    { label: 'U18 Pipeline Value', value: fmtCurrency(u18Fee), detail: data.filter(r => u18Data.includes(r)).length + ' students', color: '#22d3ee' },
-    { label: 'VET Pipeline Value', value: fmtCurrency(vetFee), detail: data.filter(r => vetData.includes(r)).length + ' students', color: '#e879f9' },
-    { label: 'Avg Fee Per Student', value: fmtCurrency(Math.round(totalFee / total)), detail: 'Total: ' + fmtCurrency(totalFee), color: '#4ade80' },
+  const total=data.length;
+  if(!total){document.getElementById('insightsGrid').innerHTML='<p style="color:#64748b">No data.</p>';return;}
+  const totalFee=data.reduce((s,r)=>s+r[8],0);
+  const confirmed=data.filter(r=>r[7].toLowerCase().includes('confirmed')).length;
+  const cc=countBy(data,2);const topC=Object.entries(cc).sort((a,b)=>b[1]-a[1])[0];
+  const ac=countBy(data,9);const topA=Object.entries(ac).filter(e=>e[0]!=='(blank)').sort((a,b)=>b[1]-a[1])[0];
+  const now=new Date();
+  const u30=data.filter(r=>{if(!r[4])return false;const d=new Date(r[4]);return d>=now&&d<=new Date(now.getTime()+30*864e5)}).length;
+  const u90=data.filter(r=>{if(!r[4])return false;const d=new Date(r[4]);return d>=now&&d<=new Date(now.getTime()+90*864e5)}).length;
+  const durs=data.filter(r=>r[4]&&r[5]).map(r=>{const s=new Date(r[4]),e=new Date(r[5]);return(e-s)/(1e3*60*60*24*30.44)}).filter(d=>d>0);
+  const avgDur=durs.length>0?(durs.reduce((a,b)=>a+b,0)/durs.length).toFixed(1):'N/A';
+  const maxR=data.reduce((b,r)=>r[8]>b[8]?r:b,data[0]);
+  const u18Fee=data.filter(r=>isU18Qual(r[0])).reduce((s,r)=>s+r[8],0);
+  const vetFee=totalFee-u18Fee;
+  const ins=[
+    {label:'Confirmation Rate',value:Math.round(confirmed/total*100)+'%',detail:confirmed+' of '+total+' confirmed',color:'#34d399'},
+    {label:'Top Source Country',value:topC?topC[0]:'N/A',detail:topC?topC[1]+' ('+Math.round(topC[1]/total*100)+'%)':'',color:'#38bdf8'},
+    {label:'Top Agent',value:topA?(topA[0].length>22?topA[0].substring(0,22)+'...':topA[0]):'N/A',detail:topA?topA[1]+' enrolments':'',color:'#818cf8'},
+    {label:'Starting Within 30 Days',value:u30,detail:u90+' within 90 days',color:'#fbbf24'},
+    {label:'Avg Study Duration',value:avgDur+' months',detail:'Start to end dates',color:'#a78bfa'},
+    {label:'Highest Fee',value:fmtCurrency(maxR[8]),detail:maxR[1],color:'#fb923c'},
+    {label:'U18 Pipeline Value',value:fmtCurrency(u18Fee),detail:data.filter(r=>isU18Qual(r[0])).length+' students',color:'#22d3ee'},
+    {label:'VET Pipeline Value',value:fmtCurrency(vetFee),detail:data.filter(r=>!isU18Qual(r[0])).length+' students',color:'#e879f9'},
+    {label:'Avg Fee/Student',value:fmtCurrency(Math.round(totalFee/total)),detail:'Total: '+fmtCurrency(totalFee),color:'#4ade80'},
   ];
-
-  document.getElementById('insightsGrid').innerHTML = insights.map(i =>
-    '<div class="insight-item"><div class="insight-label">' + i.label + '</div><div class="insight-value" style="color:' + i.color + '">' + i.value + '</div><div class="insight-detail">' + i.detail + '</div></div>'
-  ).join('');
+  document.getElementById('insightsGrid').innerHTML=ins.map(i=>'<div class="insight-item"><div class="insight-label">'+i.label+'</div><div class="insight-value" style="color:'+i.color+'">'+i.value+'</div><div class="insight-detail">'+i.detail+'</div></div>').join('');
 }
 
-// ── Data Table ──
-function switchTab(tab, btn) {
-  currentTab = tab;
-  document.querySelectorAll('.table-tabs button').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderTable();
-}
+function renderOverview() { const d=getFiltered(); renderProgressBar(d); renderKPIs(d); renderCharts(d); renderInsights(d); renderTable(); }
 
+// Table
+function switchTab(tab,btn) { currentTab=tab; document.querySelectorAll('.table-tabs button').forEach(b=>b.classList.remove('active')); if(btn)btn.classList.add('active'); renderTable(); }
 function getTableData() {
-  let data;
-  if (currentTab === 'u18') data = [...u18Data];
-  else if (currentTab === 'vet') data = [...vetData];
-  else data = [...u18Data, ...vetData];
-
-  // Apply main filters
-  const status = document.getElementById('filterStatus').value;
-  const location = document.getElementById('filterLocation').value;
-  const country = document.getElementById('filterCountry').value;
-  if (status !== 'all') data = data.filter(r => r[7].toLowerCase().includes(status));
-  if (location !== 'all') data = data.filter(r => r[6] === location);
-  if (country !== 'all') data = data.filter(r => r[2] === country);
-
-  // Search
-  const q = document.getElementById('searchBox').value.toLowerCase();
-  if (q) data = data.filter(r => r.some(c => String(c).toLowerCase().includes(q)));
-
-  // Sort
-  if (sortCol >= 0) {
-    data.sort((a, b) => {
-      let va = a[sortCol], vb = b[sortCol];
-      if (typeof va === 'number') return sortAsc ? va - vb : vb - va;
-      return sortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
-    });
-  }
+  let data=currentTab==='u18'?[...u18Data]:currentTab==='vet'?[...vetData]:[...u18Data,...vetData];
+  const st=document.getElementById('filterStatus').value,lo=document.getElementById('filterLocation').value,co=document.getElementById('filterCountry').value;
+  if(st!=='all')data=data.filter(r=>r[7].toLowerCase().includes(st));
+  if(lo!=='all')data=data.filter(r=>r[6]===lo);
+  if(co!=='all')data=data.filter(r=>r[2]===co);
+  const q=document.getElementById('searchBox').value.toLowerCase();
+  if(q)data=data.filter(r=>r.some(c=>String(c).toLowerCase().includes(q)));
+  if(sortCol>=0)data.sort((a,b)=>{let va=a[sortCol],vb=b[sortCol];if(typeof va==='number')return sortAsc?va-vb:vb-va;return sortAsc?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va));});
   return data;
 }
-
-function sortTable(col) {
-  if (sortCol === col) sortAsc = !sortAsc;
-  else { sortCol = col; sortAsc = true; }
-  renderTable();
-}
-
-function renderTable() {
-  const data = getTableData();
-  const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = data.map(r => {
-    const sc = statusClass(r[7]);
-    const statusLabel = r[7].replace('Tentative - ', '');
-    return '<tr>' +
-      '<td title="' + r[0] + '">' + (r[0].length > 35 ? r[0].substring(0,35)+'...' : r[0]) + '</td>' +
-      '<td>' + r[1] + '</td>' +
-      '<td>' + r[2] + '</td>' +
-      '<td>' + r[3] + '</td>' +
-      '<td>' + r[4] + '</td>' +
-      '<td>' + r[5] + '</td>' +
-      '<td title="' + r[6] + '">' + (r[6].length > 20 ? r[6].substring(0,20)+'...' : r[6]) + '</td>' +
-      '<td><span class="badge badge-' + sc + '">' + statusLabel + '</span></td>' +
-      '<td>' + fmtCurrency(r[8]) + '</td>' +
-      '<td title="' + r[9] + '">' + (r[9].length > 20 ? r[9].substring(0,20)+'...' : r[9]) + '</td>' +
-      '<td>' + r[10] + '</td>' +
-    '</tr>';
+function sortTable(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=true;}renderTable();}
+function renderTable(){
+  const data=getTableData();
+  document.getElementById('tableBody').innerHTML=data.map(r=>{
+    const sc=statusClass(r[7]),sl=r[7].replace('Tentative - ','');
+    return '<tr><td title="'+r[0]+'">'+(r[0].length>32?r[0].substring(0,32)+'...':r[0])+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td><td>'+r[5]+'</td><td title="'+r[6]+'">'+(r[6].length>18?r[6].substring(0,18)+'...':r[6])+'</td><td><span class="badge badge-'+sc+'">'+sl+'</span></td><td>'+fmtCurrency(r[8])+'</td><td title="'+r[9]+'">'+(r[9].length>18?r[9].substring(0,18)+'...':r[9])+'</td><td>'+r[10]+'</td></tr>';
   }).join('');
 }
 
-// ── Init ──
-initFilters();
-renderAll();
+// ══════════════════════════════════════════
+//  TAB 2: WEEKLY TRACKER
+// ══════════════════════════════════════════
+function initWeeklyFilters() {
+  const ms = document.getElementById('wFilterMonth');
+  for (let m = 0; m < 12; m++) {
+    const mn = ['January','February','March','April','May','June','July','August','September','October','November','December'][m];
+    ms.innerHTML += '<option value="'+m+'">'+mn+' 2026</option>';
+  }
+  const weeks = buildWeeklyData();
+  const ws = document.getElementById('wFilterWeek');
+  weeks.forEach(w => { ws.innerHTML += '<option value="'+w.key+'">Week '+w.weekNum+' ('+fmtShort(w.monday)+' - '+fmtShort(w.sunday)+')</option>'; });
+  const all = [...u18Data,...vetData].filter(r=>r[3]&&r[3].startsWith('2026'));
+  const persons = [...new Set(all.map(r=>r[10]).filter(Boolean))].sort();
+  const ps = document.getElementById('wFilterPerson');
+  persons.forEach(p => { ps.innerHTML += '<option value="'+p+'">'+p+'</option>'; });
+}
+
+function renderWeekly() {
+  const allWeeks = buildWeeklyData();
+  const monthF = document.getElementById('wFilterMonth').value;
+  const weekF = document.getElementById('wFilterWeek').value;
+  const personF = document.getElementById('wFilterPerson').value;
+
+  // Filter weeks
+  let weeks = allWeeks;
+  if (monthF !== 'all') {
+    const m = parseInt(monthF);
+    weeks = weeks.filter(w => w.monday.getMonth() === m || w.sunday.getMonth() === m);
+  }
+  if (weekF !== 'all') weeks = weeks.filter(w => w.key === weekF);
+
+  // If person filter, recount from records
+  if (personF !== 'all') {
+    weeks = weeks.map(w => {
+      const recs = w.records.filter(r => r[10] === personF);
+      return { ...w, u18: recs.filter(r=>isU18Qual(r[0])).length, vet: recs.filter(r=>!isU18Qual(r[0])).length, fee: recs.reduce((s,r)=>s+r[8],0), records: recs };
+    });
+  }
+
+  // KPIs
+  const totalU18 = weeks.reduce((s,w) => s+w.u18, 0);
+  const totalVET = weeks.reduce((s,w) => s+w.vet, 0);
+  const totalApps = totalU18 + totalVET;
+  const totalFee = weeks.reduce((s,w) => s+w.fee, 0);
+  const numWeeks = allWeeks.length; // Total weeks elapsed in 2026
+  const targetTotal = numWeeks * WEEKLY_TARGET_TOTAL;
+  const allU18 = allWeeks.reduce((s,w)=>s+w.u18,0);
+  const allVET = allWeeks.reduce((s,w)=>s+w.vet,0);
+  const allTotal = allU18 + allVET;
+
+  const kpis = [
+    { label: '2026 YTD Applications', value: allTotal, color: '#38bdf8', sub: 'Target: '+targetTotal+' ('+numWeeks+' weeks)' },
+    { label: 'U18 Applications', value: allU18, color: '#34d399', sub: 'Target: '+(numWeeks*WEEKLY_TARGET_U18)+' | '+(allU18>=numWeeks*WEEKLY_TARGET_U18?'On Track':'Behind') },
+    { label: 'VET Applications', value: allVET, color: '#818cf8', sub: 'Target: '+(numWeeks*WEEKLY_TARGET_VET)+' | '+(allVET>=numWeeks*WEEKLY_TARGET_VET?'On Track':'Behind') },
+    { label: 'Total Tuition Fee', value: fmtCurrency(totalFee), color: '#fbbf24', sub: personF!=='all'?personF:'All sales persons' },
+    { label: 'Avg/Week', value: (allTotal/numWeeks).toFixed(1), color: '#22d3ee', sub: 'Target: '+WEEKLY_TARGET_TOTAL+'/week' },
+  ];
+  document.getElementById('weeklyKpiGrid').innerHTML = kpis.map(c=>'<div class="kpi-card"><div class="kpi-label">'+c.label+'</div><div class="kpi-value" style="color:'+c.color+'">'+c.value+'</div><div class="kpi-sub">'+c.sub+'</div></div>').join('');
+
+  // Target Achievement (use all weeks, unfiltered for YTD targets)
+  const all2026 = [...u18Data,...vetData].filter(r=>r[3]&&r[3].startsWith('2026'));
+  const hspCount = all2026.filter(r=>qualType(r[0])==='HSP').length;
+  const pepCount = all2026.filter(r=>qualType(r[0])==='PEP').length;
+  const ylcCount = all2026.filter(r=>qualType(r[0])==='YLC').length;
+  const vetCount = all2026.filter(r=>qualType(r[0])==='VET').length;
+  const hspPepFee = all2026.filter(r=>{const t=qualType(r[0]);return t==='HSP'||t==='PEP'}).reduce((s,r)=>s+r[8],0);
+  const ylcFee = all2026.filter(r=>qualType(r[0])==='YLC').reduce((s,r)=>s+r[8],0);
+  const vetFee2026 = all2026.filter(r=>qualType(r[0])==='VET').reduce((s,r)=>s+r[8],0);
+
+  const weeksPassed = numWeeks;
+  const weeksInYear = 52;
+  const ytdPctOfYear = weeksPassed / weeksInYear;
+
+  const targets = [
+    { label: 'VET Programs', actual: vetCount, target: Math.round(ANNUAL_TARGET_VET.count * ytdPctOfYear), annualTarget: ANNUAL_TARGET_VET.count,
+      actualRev: vetFee2026, targetRev: ANNUAL_TARGET_VET.revenue, color: '#818cf8' },
+    { label: 'HSP / PEP', actual: hspCount + pepCount, target: Math.round(ANNUAL_TARGET_HSP_PEP.count * ytdPctOfYear), annualTarget: ANNUAL_TARGET_HSP_PEP.count,
+      actualRev: hspPepFee, targetRev: ANNUAL_TARGET_HSP_PEP.revenue, color: '#34d399' },
+    { label: 'Young Learner Camp', actual: ylcCount, target: '-',
+      actualRev: ylcFee, targetRev: ANNUAL_TARGET_YLC.revenue, color: '#fbbf24' },
+  ];
+
+  document.getElementById('targetGrid').innerHTML = targets.map(t => {
+    const pctCount = typeof t.target === 'number' && t.target > 0 ? Math.round(t.actual / t.target * 100) : 0;
+    const pctRev = t.targetRev > 0 ? Math.round(t.actualRev / t.targetRev * 100) : 0;
+    const onTrackCount = pctCount >= 100;
+    const countBar = typeof t.target === 'number' ? '<div class="target-bar"><div class="target-fill" style="width:'+Math.min(pctCount,100)+'%;background:'+(onTrackCount?'#34d399':'#f87171')+'"></div></div>' : '';
+    return '<div class="target-card"><h4>'+t.label+'</h4>' +
+      '<div class="target-value" style="color:'+t.color+'">'+t.actual+(typeof t.target==='number'?' / '+t.target:'')+'</div>' +
+      (typeof t.target==='number'?'<div class="target-detail">YTD applications vs pro-rata target (annual: '+t.annualTarget+')</div>'+countBar+'<div class="target-detail '+(onTrackCount?'on-target':'below-target')+'">'+pctCount+'% of YTD target</div>':'<div class="target-detail">Seasonal program — '+t.actual+' applications YTD</div>') +
+      '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #334155"><div class="target-detail">Revenue: '+fmtCurrency(t.actualRev)+' / '+fmtCurrency(t.targetRev)+' (annual target)</div>' +
+      '<div class="target-bar"><div class="target-fill" style="width:'+Math.min(pctRev,100)+'%;background:'+(pctRev>=ytdPctOfYear*100?'#34d399':'#f87171')+'"></div></div>' +
+      '<div class="target-detail">'+pctRev+'% of annual revenue target</div></div></div>';
+  }).join('');
+
+  // Charts
+  renderWeeklyCharts(allWeeks, weeks, personF);
+  renderWeeklyTable(weeks);
+  renderSalesTable();
+}
+
+function renderWeeklyCharts(allWeeks, filteredWeeks, personF) {
+  // 1. Weekly trend
+  const labels = allWeeks.map(w => 'W'+w.weekNum);
+  let u18Vals, vetVals;
+  if (personF !== 'all') {
+    u18Vals = allWeeks.map(w => w.records.filter(r=>r[10]===personF&&isU18Qual(r[0])).length);
+    vetVals = allWeeks.map(w => w.records.filter(r=>r[10]===personF&&!isU18Qual(r[0])).length);
+  } else {
+    u18Vals = allWeeks.map(w => w.u18);
+    vetVals = allWeeks.map(w => w.vet);
+  }
+  const totalVals = u18Vals.map((v,i) => v + vetVals[i]);
+  const targetLine = allWeeks.map(() => WEEKLY_TARGET_TOTAL);
+  const u18Target = allWeeks.map(() => WEEKLY_TARGET_U18);
+  const vetTarget = allWeeks.map(() => WEEKLY_TARGET_VET);
+
+  makeChart('chartWeeklyTrend','line',labels,[
+    {label:'Total',data:totalVals,borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.1)',fill:true,tension:.3,pointRadius:4},
+    {label:'Target ('+WEEKLY_TARGET_TOTAL+')',data:targetLine,borderColor:'#f87171',borderDash:[6,4],pointRadius:0,fill:false},
+  ],{plugins:{legend:{display:true,labels:{color:'#94a3b8'}}}});
+
+  // 2. Cumulative
+  let cumActual=0, cumTarget=0;
+  const cumA=totalVals.map(v=>{cumActual+=v;return cumActual});
+  const cumT=allWeeks.map(()=>{cumTarget+=WEEKLY_TARGET_TOTAL;return cumTarget});
+  makeChart('chartCumulative','line',labels,[
+    {label:'Actual',data:cumA,borderColor:'#34d399',backgroundColor:'rgba(52,211,153,.1)',fill:true,tension:.3,pointRadius:3},
+    {label:'Target',data:cumT,borderColor:'#f87171',borderDash:[6,4],pointRadius:0,fill:false},
+  ],{plugins:{legend:{display:true,labels:{color:'#94a3b8'}}}});
+
+  // 3. U18 vs VET stacked
+  makeChart('chartWeeklyType','bar',labels,[
+    {label:'U18',data:u18Vals,backgroundColor:'#34d399',borderRadius:2},
+    {label:'VET',data:vetVals,backgroundColor:'#818cf8',borderRadius:2},
+  ],{plugins:{legend:{display:true,labels:{color:'#94a3b8'}}},scales:{x:{stacked:true,ticks:{color:'#94a3b8'},grid:{color:'#1e293b'}},y:{stacked:true,ticks:{color:'#94a3b8'},grid:{color:'#1e293b'}}}});
+
+  // 4. Sales person
+  const all2026 = [...u18Data,...vetData].filter(r=>r[3]&&r[3].startsWith('2026'));
+  const sp = countBy(all2026.map(r=>[r[10]||'(unassigned)',...r.slice(1)]),0);
+  const spSorted = Object.entries(sp).sort((a,b)=>b[1]-a[1]);
+  makeChart('chartSalesPerson','bar',spSorted.map(s=>s[0]),[
+    {label:'Applications',data:spSorted.map(s=>s[1]),backgroundColor:COLORS.slice(0,spSorted.length),borderRadius:4}
+  ],{plugins:{legend:{display:false}}});
+}
+
+function renderWeeklyTable(weeks) {
+  let cum = 0;
+  document.getElementById('weeklyTableBody').innerHTML = weeks.map(w => {
+    const total = w.u18 + w.vet;
+    cum += total;
+    const diff = total - WEEKLY_TARGET_TOTAL;
+    const cls = diff >= 0 ? 'on-target' : 'below-target';
+    return '<tr><td>W'+w.weekNum+'</td><td>'+fmtShort(w.monday)+' - '+fmtShort(w.sunday)+'</td>' +
+      '<td>'+w.u18+'</td><td>'+WEEKLY_TARGET_U18+'</td>' +
+      '<td>'+w.vet+'</td><td>'+WEEKLY_TARGET_VET+'</td>' +
+      '<td style="font-weight:600">'+total+'</td><td>'+WEEKLY_TARGET_TOTAL+'</td>' +
+      '<td class="'+cls+'" style="font-weight:600">'+(diff>=0?'+':'')+diff+'</td>' +
+      '<td>'+fmtCurrency(w.fee)+'</td><td>'+cum+'</td></tr>';
+  }).join('');
+}
+
+function renderSalesTable() {
+  const all2026 = [...u18Data,...vetData].filter(r=>r[3]&&r[3].startsWith('2026'));
+  const spMap = {};
+  all2026.forEach(r => {
+    const p = r[10] || '(unassigned)';
+    if (!spMap[p]) spMap[p] = { u18: 0, vet: 0, fee: 0 };
+    if (isU18Qual(r[0])) spMap[p].u18++; else spMap[p].vet++;
+    spMap[p].fee += r[8];
+  });
+  const sorted = Object.entries(spMap).sort((a,b) => (b[1].u18+b[1].vet)-(a[1].u18+a[1].vet));
+  document.getElementById('salesTableBody').innerHTML = sorted.map(([name, d]) => {
+    const total = d.u18 + d.vet;
+    const avg = total > 0 ? Math.round(d.fee / total) : 0;
+    return '<tr><td>'+name+'</td><td>'+d.u18+'</td><td>'+d.vet+'</td><td style="font-weight:600">'+total+'</td><td>'+fmtCurrency(d.fee)+'</td><td>'+fmtCurrency(avg)+'</td></tr>';
+  }).join('');
+}
+
+// ══════════ INIT ══════════
+initOverviewFilters();
+initWeeklyFilters();
+renderOverview();
 </script>
 </body>
 </html>
