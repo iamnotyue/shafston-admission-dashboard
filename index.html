@@ -8,7 +8,6 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/prop-types@15/prop-types.min.js" crossorigin></script>
 <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; }
@@ -16,293 +15,1157 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
-const { useState, useMemo } = React;
-const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } = Recharts;
-
-const VET_DATA = [
-  { name: "Shafston Pathway Program - DHM", fullName: "Eka Aprilia WIDIARTO", citizenship: "Indonesia", offerDate: "2025-08-25", startDate: "2027-08-02", finishDate: "", fee: 4000, agentOrg: "EduHub", recruiter: "", code: "SIT50422" },
-  { name: "Shafston Pathway Program - DHM", fullName: "Ni Kadek Nayra FRANNINDYA", citizenship: "Indonesia", offerDate: "2025-08-25", startDate: "2027-08-02", finishDate: "", fee: 4000, agentOrg: "EduHub", recruiter: "", code: "SIT50422" },
-  { name: "Shafston Pathway Program - DHM", fullName: "I Gede Andika KRISNATA", citizenship: "Indonesia", offerDate: "2025-08-25", startDate: "2027-08-02", finishDate: "", fee: 4000, agentOrg: "EduHub", recruiter: "", code: "SIT50422" },
-  { name: "Shafston Pathway Program - DHM", fullName: "Ricky Dwi PAMBUDI", citizenship: "Indonesia", offerDate: "2025-08-25", startDate: "2027-08-02", finishDate: "", fee: 4000, agentOrg: "EduHub", recruiter: "", code: "SIT50422" },
-  { name: "Shafston Pathway Program - ADOB", fullName: "Sheng-Lun TU", citizenship: "Taiwan", offerDate: "2025-08-29", startDate: "2026-09-14", finishDate: "", fee: 6500, agentOrg: "EduHub", recruiter: "", code: "BSB60120" },
-  { name: "Shafston Pathway Program - ADOB", fullName: "Ni Luh Made Erik SEPTIARI", citizenship: "Indonesia", offerDate: "2025-08-29", startDate: "2026-03-23", finishDate: "", fee: 6500, agentOrg: "EduHub", recruiter: "", code: "BSB60120" },
-  { name: "Shafston Pathway Program - DHM", fullName: "Ni Putu Ayu Sri DIANAWATI", citizenship: "Indonesia", offerDate: "2025-08-29", startDate: "2027-01-11", finishDate: "", fee: 6000, agentOrg: "EduHub", recruiter: "", code: "SIT50422" },
-  { name: "Shafston Pathway Program - DHM", fullName: "Shih-Hao WANG", citizenship: "Taiwan", offerDate: "2025-08-29", startDate: "2027-01-11", finishDate: "", fee: 5900, agentOrg: "EduHub", recruiter: "", code: "SIT50422" },
-  { name: "Shafston Pathway Program - DHM", fullName: "Kang-Yu CHANG", citizenship: "Taiwan", offerDate: "2025-09-02", startDate: "2026-09-14", finishDate: "", fee: 4400, agentOrg: "Shafston (Direct)", recruiter: "", code: "SIT50422" },
-  { name: "DECEC", fullName: "Jaqueline VARGAS", citizenship: "Brazil", offerDate: "2025-04-10", startDate: "2026-05-25", finishDate: "", fee: 8000, agentOrg: "Connection Australia", recruiter: "", code: "CHC50121" },
-  { name: "DECEC", fullName: "Flavia DOURADO OLIVEIRA", citizenship: "Brazil", offerDate: "2025-05-15", startDate: "2027-01-11", finishDate: "", fee: 8000, agentOrg: "Hello Study", recruiter: "", code: "CHC50121" },
-  { name: "DCS", fullName: "Karla MARTE ARAQUE", citizenship: "Venezuela", offerDate: "2025-08-15", startDate: "2026-07-27", finishDate: "", fee: 8000, agentOrg: "Will World Education", recruiter: "", code: "CHC52021" },
-  { name: "DCS", fullName: "Maria Fernanda YEPEZ TUFINO", citizenship: "Spain", offerDate: "2025-09-30", startDate: "2026-07-27", finishDate: "", fee: 8000, agentOrg: "Dingoos", recruiter: "", code: "CHC52021" },
-  { name: "DECEC", fullName: "Noderlly MOSQUERA MOSQUERA", citizenship: "Colombia", offerDate: "2023-06-21", startDate: "2026-03-23", finishDate: "", fee: 7000, agentOrg: "Avanti Education", recruiter: "Woojeong Jeong", code: "CHC50121" },
-  { name: "DCS", fullName: "Emerson PENARANDA PEREZ", citizenship: "Colombia", offerDate: "2024-08-08", startDate: "2026-03-23", finishDate: "", fee: 7000, agentOrg: "GE Agency", recruiter: "Woojeong Jeong", code: "CHC52021" },
-  { name: "DIT", fullName: "Punnaphat CHUENJAROEN", citizenship: "Thailand", offerDate: "2024-12-04", startDate: "2026-05-25", finishDate: "", fee: 7500, agentOrg: "Sol Education", recruiter: "Mika Wilson", code: "ICT50220" },
-  { name: "DPM", fullName: "Valentina MUNOZ PARRA", citizenship: "Colombia", offerDate: "2023-06-14", startDate: "2026-03-23", finishDate: "", fee: 7000, agentOrg: "Explora Education", recruiter: "Pathways", code: "BSB50820" },
-  { name: "DECEC", fullName: "Paolo DURANDAL VALDES", citizenship: "Chile", offerDate: "2025-03-11", startDate: "2026-05-25", finishDate: "", fee: 8000, agentOrg: "Dingoos", recruiter: "Woojeong Jeong", code: "CHC50121" },
-  { name: "FLEXI", fullName: "Cristian Andres QUINTERO SARMIENTO", citizenship: "Colombia", offerDate: "2025-05-15", startDate: "2026-07-27", finishDate: "", fee: 6840, agentOrg: "Monkeys Education", recruiter: "Woojeong Jeong", code: "FLEXI" },
-  { name: "C3ECEC", fullName: "Laura MACENA DE OLIVEIRA", citizenship: "Brazil", offerDate: "2025-06-11", startDate: "2026-03-23", finishDate: "", fee: 8000, agentOrg: "Make International", recruiter: "Woojeong Jeong", code: "CHC30121" },
-  { name: "DECEC", fullName: "Laura MACENA DE OLIVEIRA", citizenship: "Brazil", offerDate: "2025-06-12", startDate: "2027-05-24", finishDate: "", fee: 8000, agentOrg: "Make International", recruiter: "Woojeong Jeong", code: "CHC50121" },
-  { name: "C3ECEC", fullName: "Tatiana Belen DIAZ", citizenship: "Argentina", offerDate: "2025-06-27", startDate: "2026-03-23", finishDate: "", fee: 8000, agentOrg: "Will World Education", recruiter: "Woojeong Jeong", code: "CHC30121" },
-  { name: "DECEC", fullName: "Tatiana Belen DIAZ", citizenship: "Argentina", offerDate: "2025-06-27", startDate: "2027-05-24", finishDate: "", fee: 8000, agentOrg: "Will World Education", recruiter: "Woojeong Jeong", code: "CHC50121" },
-  { name: "Shafston Pathway Program - ADOB", fullName: "Jia-Wei SU", citizenship: "Taiwan", offerDate: "2025-08-26", startDate: "2026-03-23", finishDate: "", fee: 8000, agentOrg: "EduHub", recruiter: "Pathways", code: "BSB60120" },
-  { name: "Shafston Pathway Program - DHM", fullName: "Ida Ayu Pertiwi ARIYASA", citizenship: "Indonesia", offerDate: "2025-08-29", startDate: "2026-05-11", finishDate: "", fee: 5900, agentOrg: "EduHub", recruiter: "Pathways", code: "SIT50422" },
-  { name: "Shafston Pathway Program - DHM", fullName: "Kay-Yu WU", citizenship: "Taiwan", offerDate: "2025-08-29", startDate: "2026-05-11", finishDate: "", fee: 5900, agentOrg: "EduHub", recruiter: "Pathways", code: "SIT50422" },
-  { name: "GE", fullName: "Janis PEREZ CORTINEZ", citizenship: "Colombia", offerDate: "2025-10-13", startDate: "2026-03-16", finishDate: "", fee: 6250, agentOrg: "One Way Education", recruiter: "", code: "GE" },
-];
-
-const U18_DATA = [
-  { name: "PEP - BNE: 2026 Term 3", fullName: "Huai-En CHANG", citizenship: "Taiwan", offerDate: "2024-08-22", startDate: "2026-07-13", finishDate: "", fee: 5000, agentOrg: "AMEC", recruiter: "Tiya Li", code: "PEP" },
-  { name: "PEP - BNE: 2026 Term 4", fullName: "Huai-En CHANG", citizenship: "Taiwan", offerDate: "2024-08-23", startDate: "2026-10-05", finishDate: "", fee: 5000, agentOrg: "AMEC", recruiter: "Tiya Li", code: "PEP" },
-];
-
-const COLORS = { primary:'#1e3a5f', secondary:'#4472C4', accent:'#70ad47', warning:'#ffc000', u18:'#ed7d31', vet:'#4472C4', bg:'#f8fafc', cardBg:'#ffffff', textPrimary:'#1e293b', textSecondary:'#64748b', border:'#e2e8f0' };
-const PIE_COLORS = ['#4472C4','#ed7d31','#70ad47','#ffc000','#a855f7','#ec4899','#06b6d4','#84cc16','#f97316'];
-const fmt = (n) => '$' + n.toLocaleString();
-const monthLabel = (d) => { if (!d) return 'TBD'; const [y, m] = d.split('-'); const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return months[parseInt(m)-1] + ' ' + y; };
-
+<script>
+const {
+  useState,
+  useMemo
+} = React;
+const {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer
+} = Recharts;
+const VET_DATA = [{
+  name: "Shafston Pathway Program - DHM",
+  fullName: "Eka Aprilia WIDIARTO",
+  citizenship: "Indonesia",
+  offerDate: "2025-08-25",
+  startDate: "2027-08-02",
+  finishDate: "",
+  fee: 4000,
+  agentOrg: "EduHub",
+  recruiter: "",
+  code: "SIT50422"
+}, {
+  name: "Shafston Pathway Program - DHM",
+  fullName: "Ni Kadek Nayra FRANNINDYA",
+  citizenship: "Indonesia",
+  offerDate: "2025-08-25",
+  startDate: "2027-08-02",
+  finishDate: "",
+  fee: 4000,
+  agentOrg: "EduHub",
+  recruiter: "",
+  code: "SIT50422"
+}, {
+  name: "Shafston Pathway Program - DHM",
+  fullName: "I Gede Andika KRISNATA",
+  citizenship: "Indonesia",
+  offerDate: "2025-08-25",
+  startDate: "2027-08-02",
+  finishDate: "",
+  fee: 4000,
+  agentOrg: "EduHub",
+  recruiter: "",
+  code: "SIT50422"
+}, {
+  name: "Shafston Pathway Program - DHM",
+  fullName: "Ricky Dwi PAMBUDI",
+  citizenship: "Indonesia",
+  offerDate: "2025-08-25",
+  startDate: "2027-08-02",
+  finishDate: "",
+  fee: 4000,
+  agentOrg: "EduHub",
+  recruiter: "",
+  code: "SIT50422"
+}, {
+  name: "Shafston Pathway Program - ADOB",
+  fullName: "Sheng-Lun TU",
+  citizenship: "Taiwan",
+  offerDate: "2025-08-29",
+  startDate: "2026-09-14",
+  finishDate: "",
+  fee: 6500,
+  agentOrg: "EduHub",
+  recruiter: "",
+  code: "BSB60120"
+}, {
+  name: "Shafston Pathway Program - ADOB",
+  fullName: "Ni Luh Made Erik SEPTIARI",
+  citizenship: "Indonesia",
+  offerDate: "2025-08-29",
+  startDate: "2026-03-23",
+  finishDate: "",
+  fee: 6500,
+  agentOrg: "EduHub",
+  recruiter: "",
+  code: "BSB60120"
+}, {
+  name: "Shafston Pathway Program - DHM",
+  fullName: "Ni Putu Ayu Sri DIANAWATI",
+  citizenship: "Indonesia",
+  offerDate: "2025-08-29",
+  startDate: "2027-01-11",
+  finishDate: "",
+  fee: 6000,
+  agentOrg: "EduHub",
+  recruiter: "",
+  code: "SIT50422"
+}, {
+  name: "Shafston Pathway Program - DHM",
+  fullName: "Shih-Hao WANG",
+  citizenship: "Taiwan",
+  offerDate: "2025-08-29",
+  startDate: "2027-01-11",
+  finishDate: "",
+  fee: 5900,
+  agentOrg: "EduHub",
+  recruiter: "",
+  code: "SIT50422"
+}, {
+  name: "Shafston Pathway Program - DHM",
+  fullName: "Kang-Yu CHANG",
+  citizenship: "Taiwan",
+  offerDate: "2025-09-02",
+  startDate: "2026-09-14",
+  finishDate: "",
+  fee: 4400,
+  agentOrg: "Shafston (Direct)",
+  recruiter: "",
+  code: "SIT50422"
+}, {
+  name: "DECEC",
+  fullName: "Jaqueline VARGAS",
+  citizenship: "Brazil",
+  offerDate: "2025-04-10",
+  startDate: "2026-05-25",
+  finishDate: "",
+  fee: 8000,
+  agentOrg: "Connection Australia",
+  recruiter: "",
+  code: "CHC50121"
+}, {
+  name: "DECEC",
+  fullName: "Flavia DOURADO OLIVEIRA",
+  citizenship: "Brazil",
+  offerDate: "2025-05-15",
+  startDate: "2027-01-11",
+  finishDate: "",
+  fee: 8000,
+  agentOrg: "Hello Study",
+  recruiter: "",
+  code: "CHC50121"
+}, {
+  name: "DCS",
+  fullName: "Karla MARTE ARAQUE",
+  citizenship: "Venezuela",
+  offerDate: "2025-08-15",
+  startDate: "2026-07-27",
+  finishDate: "",
+  fee: 8000,
+  agentOrg: "Will World Education",
+  recruiter: "",
+  code: "CHC52021"
+}, {
+  name: "DCS",
+  fullName: "Maria Fernanda YEPEZ TUFINO",
+  citizenship: "Spain",
+  offerDate: "2025-09-30",
+  startDate: "2026-07-27",
+  finishDate: "",
+  fee: 8000,
+  agentOrg: "Dingoos",
+  recruiter: "",
+  code: "CHC52021"
+}, {
+  name: "DECEC",
+  fullName: "Noderlly MOSQUERA MOSQUERA",
+  citizenship: "Colombia",
+  offerDate: "2023-06-21",
+  startDate: "2026-03-23",
+  finishDate: "",
+  fee: 7000,
+  agentOrg: "Avanti Education",
+  recruiter: "Woojeong Jeong",
+  code: "CHC50121"
+}, {
+  name: "DCS",
+  fullName: "Emerson PENARANDA PEREZ",
+  citizenship: "Colombia",
+  offerDate: "2024-08-08",
+  startDate: "2026-03-23",
+  finishDate: "",
+  fee: 7000,
+  agentOrg: "GE Agency",
+  recruiter: "Woojeong Jeong",
+  code: "CHC52021"
+}, {
+  name: "DIT",
+  fullName: "Punnaphat CHUENJAROEN",
+  citizenship: "Thailand",
+  offerDate: "2024-12-04",
+  startDate: "2026-05-25",
+  finishDate: "",
+  fee: 7500,
+  agentOrg: "Sol Education",
+  recruiter: "Mika Wilson",
+  code: "ICT50220"
+}, {
+  name: "DPM",
+  fullName: "Valentina MUNOZ PARRA",
+  citizenship: "Colombia",
+  offerDate: "2023-06-14",
+  startDate: "2026-03-23",
+  finishDate: "",
+  fee: 7000,
+  agentOrg: "Explora Education",
+  recruiter: "Pathways",
+  code: "BSB50820"
+}, {
+  name: "DECEC",
+  fullName: "Paolo DURANDAL VALDES",
+  citizenship: "Chile",
+  offerDate: "2025-03-11",
+  startDate: "2026-05-25",
+  finishDate: "",
+  fee: 8000,
+  agentOrg: "Dingoos",
+  recruiter: "Woojeong Jeong",
+  code: "CHC50121"
+}, {
+  name: "FLEXI",
+  fullName: "Cristian Andres QUINTERO SARMIENTO",
+  citizenship: "Colombia",
+  offerDate: "2025-05-15",
+  startDate: "2026-07-27",
+  finishDate: "",
+  fee: 6840,
+  agentOrg: "Monkeys Education",
+  recruiter: "Woojeong Jeong",
+  code: "FLEXI"
+}, {
+  name: "C3ECEC",
+  fullName: "Laura MACENA DE OLIVEIRA",
+  citizenship: "Brazil",
+  offerDate: "2025-06-11",
+  startDate: "2026-03-23",
+  finishDate: "",
+  fee: 8000,
+  agentOrg: "Make International",
+  recruiter: "Woojeong Jeong",
+  code: "CHC30121"
+}, {
+  name: "DECEC",
+  fullName: "Laura MACENA DE OLIVEIRA",
+  citizenship: "Brazil",
+  offerDate: "2025-06-12",
+  startDate: "2027-05-24",
+  finishDate: "",
+  fee: 8000,
+  agentOrg: "Make International",
+  recruiter: "Woojeong Jeong",
+  code: "CHC50121"
+}, {
+  name: "C3ECEC",
+  fullName: "Tatiana Belen DIAZ",
+  citizenship: "Argentina",
+  offerDate: "2025-06-27",
+  startDate: "2026-03-23",
+  finishDate: "",
+  fee: 8000,
+  agentOrg: "Will World Education",
+  recruiter: "Woojeong Jeong",
+  code: "CHC30121"
+}, {
+  name: "DECEC",
+  fullName: "Tatiana Belen DIAZ",
+  citizenship: "Argentina",
+  offerDate: "2025-06-27",
+  startDate: "2027-05-24",
+  finishDate: "",
+  fee: 8000,
+  agentOrg: "Will World Education",
+  recruiter: "Woojeong Jeong",
+  code: "CHC50121"
+}, {
+  name: "Shafston Pathway Program - ADOB",
+  fullName: "Jia-Wei SU",
+  citizenship: "Taiwan",
+  offerDate: "2025-08-26",
+  startDate: "2026-03-23",
+  finishDate: "",
+  fee: 8000,
+  agentOrg: "EduHub",
+  recruiter: "Pathways",
+  code: "BSB60120"
+}, {
+  name: "Shafston Pathway Program - DHM",
+  fullName: "Ida Ayu Pertiwi ARIYASA",
+  citizenship: "Indonesia",
+  offerDate: "2025-08-29",
+  startDate: "2026-05-11",
+  finishDate: "",
+  fee: 5900,
+  agentOrg: "EduHub",
+  recruiter: "Pathways",
+  code: "SIT50422"
+}, {
+  name: "Shafston Pathway Program - DHM",
+  fullName: "Kay-Yu WU",
+  citizenship: "Taiwan",
+  offerDate: "2025-08-29",
+  startDate: "2026-05-11",
+  finishDate: "",
+  fee: 5900,
+  agentOrg: "EduHub",
+  recruiter: "Pathways",
+  code: "SIT50422"
+}, {
+  name: "GE",
+  fullName: "Janis PEREZ CORTINEZ",
+  citizenship: "Colombia",
+  offerDate: "2025-10-13",
+  startDate: "2026-03-16",
+  finishDate: "",
+  fee: 6250,
+  agentOrg: "One Way Education",
+  recruiter: "",
+  code: "GE"
+}];
+const U18_DATA = [{
+  name: "PEP - BNE: 2026 Term 3",
+  fullName: "Huai-En CHANG",
+  citizenship: "Taiwan",
+  offerDate: "2024-08-22",
+  startDate: "2026-07-13",
+  finishDate: "",
+  fee: 5000,
+  agentOrg: "AMEC",
+  recruiter: "Tiya Li",
+  code: "PEP"
+}, {
+  name: "PEP - BNE: 2026 Term 4",
+  fullName: "Huai-En CHANG",
+  citizenship: "Taiwan",
+  offerDate: "2024-08-23",
+  startDate: "2026-10-05",
+  finishDate: "",
+  fee: 5000,
+  agentOrg: "AMEC",
+  recruiter: "Tiya Li",
+  code: "PEP"
+}];
+const COLORS = {
+  primary: '#1e3a5f',
+  secondary: '#4472C4',
+  accent: '#70ad47',
+  warning: '#ffc000',
+  u18: '#ed7d31',
+  vet: '#4472C4',
+  bg: '#f8fafc',
+  cardBg: '#ffffff',
+  textPrimary: '#1e293b',
+  textSecondary: '#64748b',
+  border: '#e2e8f0'
+};
+const PIE_COLORS = ['#4472C4', '#ed7d31', '#70ad47', '#ffc000', '#a855f7', '#ec4899', '#06b6d4', '#84cc16', '#f97316'];
+const fmt = n => '
+</body>
+</html>
+ + n.toLocaleString();
+const monthLabel = d => {
+  if (!d) return 'TBD';
+  const [y, m] = d.split('-');
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return months[parseInt(m) - 1] + ' ' + y;
+};
 function AdmissionDashboard() {
   const [activeTab, setActiveTab] = useState(0);
-  const [vetFilter, setVetFilter] = useState({ qual:'All', agent:'All', month:'All' });
-  const [u18Filter, setU18Filter] = useState({ qual:'All', month:'All' });
-
+  const [vetFilter, setVetFilter] = useState({
+    qual: 'All',
+    agent: 'All',
+    month: 'All'
+  });
+  const [u18Filter, setU18Filter] = useState({
+    qual: 'All',
+    month: 'All'
+  });
   const allData = useMemo(() => [...VET_DATA, ...U18_DATA], []);
-  const totalFees = useMemo(() => allData.reduce((s,r) => s+r.fee, 0), [allData]);
-  const vetFees = useMemo(() => VET_DATA.reduce((s,r) => s+r.fee, 0), []);
-  const u18Fees = useMemo(() => U18_DATA.reduce((s,r) => s+r.fee, 0), []);
-
+  const totalFees = useMemo(() => allData.reduce((s, r) => s + r.fee, 0), [allData]);
+  const vetFees = useMemo(() => VET_DATA.reduce((s, r) => s + r.fee, 0), []);
+  const u18Fees = useMemo(() => U18_DATA.reduce((s, r) => s + r.fee, 0), []);
   const byCountry = useMemo(() => {
-    const m = {}; allData.forEach(r => { m[r.citizenship] = (m[r.citizenship]||0)+1; });
-    return Object.entries(m).sort((a,b) => b[1]-a[1]).map(([name,value]) => ({name,value}));
+    const m = {};
+    allData.forEach(r => {
+      m[r.citizenship] = (m[r.citizenship] || 0) + 1;
+    });
+    return Object.entries(m).sort((a, b) => b[1] - a[1]).map(([name, value]) => ({
+      name,
+      value
+    }));
   }, [allData]);
-
   const byAgent = useMemo(() => {
-    const m = {}; allData.forEach(r => { m[r.agentOrg] = (m[r.agentOrg]||0)+1; });
-    return Object.entries(m).sort((a,b) => b[1]-a[1]).map(([name,count]) => ({name,count}));
+    const m = {};
+    allData.forEach(r => {
+      m[r.agentOrg] = (m[r.agentOrg] || 0) + 1;
+    });
+    return Object.entries(m).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({
+      name,
+      count
+    }));
   }, [allData]);
-
   const byCommMonth = useMemo(() => {
     const m = {};
     allData.forEach(r => {
       const ml = monthLabel(r.startDate);
-      if (!m[ml]) m[ml] = { month:ml, count:0, fees:0, sortKey: r.startDate?.slice(0,7)||'zzzz' };
-      m[ml].count++; m[ml].fees += r.fee;
+      if (!m[ml]) m[ml] = {
+        month: ml,
+        count: 0,
+        fees: 0,
+        sortKey: r.startDate?.slice(0, 7) || 'zzzz'
+      };
+      m[ml].count++;
+      m[ml].fees += r.fee;
     });
-    return Object.values(m).sort((a,b) => a.sortKey.localeCompare(b.sortKey));
+    return Object.values(m).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
   }, [allData]);
-
   const vetByQual = useMemo(() => {
     const m = {};
     VET_DATA.forEach(r => {
       const q = r.name.split(' - ')[0].split(' (')[0].trim();
-      if (!m[q]) m[q] = { name:q, count:0, fees:0 }; m[q].count++; m[q].fees += r.fee;
+      if (!m[q]) m[q] = {
+        name: q,
+        count: 0,
+        fees: 0
+      };
+      m[q].count++;
+      m[q].fees += r.fee;
     });
-    return Object.values(m).sort((a,b) => b.count-a.count);
+    return Object.values(m).sort((a, b) => b.count - a.count);
   }, []);
-
   const vetQuals = useMemo(() => ['All', ...new Set(VET_DATA.map(r => r.name.split(' - ')[0].split(' (')[0].trim()))], []);
   const vetAgents = useMemo(() => ['All', ...new Set(VET_DATA.map(r => r.agentOrg))], []);
   const vetMonths = useMemo(() => ['All', ...new Set(VET_DATA.map(r => monthLabel(r.startDate)))], []);
-
   const filteredVet = useMemo(() => VET_DATA.filter(r => {
-    if (vetFilter.qual!=='All' && !r.name.startsWith(vetFilter.qual)) return false;
-    if (vetFilter.agent!=='All' && r.agentOrg!==vetFilter.agent) return false;
-    if (vetFilter.month!=='All' && monthLabel(r.startDate)!==vetFilter.month) return false;
+    if (vetFilter.qual !== 'All' && !r.name.startsWith(vetFilter.qual)) return false;
+    if (vetFilter.agent !== 'All' && r.agentOrg !== vetFilter.agent) return false;
+    if (vetFilter.month !== 'All' && monthLabel(r.startDate) !== vetFilter.month) return false;
     return true;
   }), [vetFilter]);
-
   const filteredU18 = useMemo(() => U18_DATA.filter(r => {
-    if (u18Filter.month!=='All' && monthLabel(r.startDate)!==u18Filter.month) return false;
+    if (u18Filter.month !== 'All' && monthLabel(r.startDate) !== u18Filter.month) return false;
     return true;
   }), [u18Filter]);
-
-  const tabs = ['Pipeline Overview','U18 Pipeline','VET Pipeline','Offer Activity'];
-
-  const Card = ({title,value,subtitle,color=COLORS.secondary,icon}) => (
-    <div style={{background:COLORS.cardBg,borderRadius:12,padding:'20px 24px',boxShadow:'0 1px 3px rgba(0,0,0,0.08)',border:'1px solid '+COLORS.border,display:'flex',flexDirection:'column',gap:4,minWidth:180}}>
-      <div style={{fontSize:13,color:COLORS.textSecondary,fontWeight:500}}>{icon} {title}</div>
-      <div style={{fontSize:28,fontWeight:700,color:color}}>{value}</div>
-      {subtitle && <div style={{fontSize:12,color:COLORS.textSecondary}}>{subtitle}</div>}
-    </div>
-  );
-
-  const DataTable = ({data,columns}) => (
-    <div style={{overflowX:'auto',borderRadius:8,border:'1px solid '+COLORS.border}}>
-      <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
-        <thead><tr>
-          {columns.map((col,i) => <th key={i} style={{padding:'10px 12px',textAlign:'left',background:COLORS.primary,color:'#fff',fontWeight:600,fontSize:12,whiteSpace:'nowrap',borderBottom:'2px solid '+COLORS.primary}}>{col.header}</th>)}
-        </tr></thead>
-        <tbody>
-          {data.map((row,ri) => <tr key={ri} style={{background:ri%2===0?'#fff':'#f8fafc'}}>
-            {columns.map((col,ci) => <td key={ci} style={{padding:'8px 12px',borderBottom:'1px solid '+COLORS.border,whiteSpace:col.nowrap?'nowrap':'normal',maxWidth:col.maxWidth||'none'}}>{col.render?col.render(row):row[col.key]}</td>)}
-          </tr>)}
-        </tbody>
-      </table>
-    </div>
-  );
-
-  const FilterSelect = ({label,value,options,onChange}) => (
-    <div style={{display:'flex',flexDirection:'column',gap:4}}>
-      <label style={{fontSize:11,fontWeight:600,color:COLORS.textSecondary,textTransform:'uppercase'}}>{label}</label>
-      <select value={value} onChange={e=>onChange(e.target.value)} style={{padding:'6px 10px',borderRadius:6,border:'1px solid '+COLORS.border,fontSize:13,background:'#fff',cursor:'pointer',minWidth:140}}>
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-      </select>
-    </div>
-  );
-
-  const PipelineOverview = () => (
-    <div style={{display:'flex',flexDirection:'column',gap:24}}>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))',gap:16}}>
-        <Card title="Total Tentative" value={allData.length} subtitle="Active pipeline" color={COLORS.primary} icon="\u{1f4cb}" />
-        <Card title="Pipeline Value" value={fmt(totalFees)} subtitle="Total tuition fees" color={COLORS.accent} icon="\u{1f4b0}" />
-        <Card title="VET Enrolments" value={VET_DATA.length} subtitle={fmt(vetFees)} color={COLORS.vet} icon="\u{1f393}" />
-        <Card title="U18 Enrolments" value={U18_DATA.length} subtitle={fmt(u18Fees)} color={COLORS.u18} icon="\u{1f9d1}" />
-        <Card title="Top Agent" value={byAgent[0]?.name||'-'} subtitle={(byAgent[0]?.count||0)+' enrolments'} color={COLORS.primary} icon="\u{1f3e2}" />
-        <Card title="Countries" value={byCountry.length} subtitle="Nationalities represented" color={COLORS.secondary} icon="\u{1f30f}" />
-      </div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20}}>
-        <div style={{background:COLORS.cardBg,borderRadius:12,padding:20,boxShadow:'0 1px 3px rgba(0,0,0,0.08)',border:'1px solid '+COLORS.border}}>
-          <h3 style={{fontSize:15,fontWeight:600,color:COLORS.textPrimary,marginBottom:16}}>By Country of Citizenship</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart><Pie data={byCountry} cx="50%" cy="50%" outerRadius={100} innerRadius={50} dataKey="value" nameKey="name" label={({name,value})=>name+': '+value} labelLine={true} fontSize={11}>
-              {byCountry.map((_,i) => <Cell key={i} fill={PIE_COLORS[i%PIE_COLORS.length]} />)}
-            </Pie><Tooltip /></PieChart>
-          </ResponsiveContainer>
-        </div>
-        <div style={{background:COLORS.cardBg,borderRadius:12,padding:20,boxShadow:'0 1px 3px rgba(0,0,0,0.08)',border:'1px solid '+COLORS.border}}>
-          <h3 style={{fontSize:15,fontWeight:600,color:COLORS.textPrimary,marginBottom:16}}>Commencement Forecast</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={byCommMonth}><CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" /><XAxis dataKey="month" fontSize={11} angle={-30} textAnchor="end" height={60} /><YAxis fontSize={11} /><Tooltip /><Bar dataKey="count" name="Students" fill={COLORS.secondary} radius={[4,4,0,0]} /></BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div style={{background:COLORS.cardBg,borderRadius:12,padding:20,boxShadow:'0 1px 3px rgba(0,0,0,0.08)',border:'1px solid '+COLORS.border}}>
-        <h3 style={{fontSize:15,fontWeight:600,color:COLORS.textPrimary,marginBottom:16}}>Agent Organisation Breakdown</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={byAgent} layout="vertical"><CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" /><XAxis type="number" fontSize={11} /><YAxis type="category" dataKey="name" width={160} fontSize={11} /><Tooltip /><Bar dataKey="count" name="Enrolments" fill={COLORS.accent} radius={[0,4,4,0]} /></BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
-
+  const tabs = ['Pipeline Overview', 'U18 Pipeline', 'VET Pipeline', 'Offer Activity'];
+  const Card = ({
+    title,
+    value,
+    subtitle,
+    color = COLORS.secondary,
+    icon
+  }) => /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.cardBg,
+      borderRadius: 12,
+      padding: '20px 24px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+      border: '1px solid ' + COLORS.border,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4,
+      minWidth: 180
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: COLORS.textSecondary,
+      fontWeight: 500
+    }
+  }, icon, " ", title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 28,
+      fontWeight: 700,
+      color: color
+    }
+  }, value), subtitle && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textSecondary
+    }
+  }, subtitle));
+  const DataTable = ({
+    data,
+    columns
+  }) => /*#__PURE__*/React.createElement("div", {
+    style: {
+      overflowX: 'auto',
+      borderRadius: 8,
+      border: '1px solid ' + COLORS.border
+    }
+  }, /*#__PURE__*/React.createElement("table", {
+    style: {
+      width: '100%',
+      borderCollapse: 'collapse',
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, columns.map((col, i) => /*#__PURE__*/React.createElement("th", {
+    key: i,
+    style: {
+      padding: '10px 12px',
+      textAlign: 'left',
+      background: COLORS.primary,
+      color: '#fff',
+      fontWeight: 600,
+      fontSize: 12,
+      whiteSpace: 'nowrap',
+      borderBottom: '2px solid ' + COLORS.primary
+    }
+  }, col.header)))), /*#__PURE__*/React.createElement("tbody", null, data.map((row, ri) => /*#__PURE__*/React.createElement("tr", {
+    key: ri,
+    style: {
+      background: ri % 2 === 0 ? '#fff' : '#f8fafc'
+    }
+  }, columns.map((col, ci) => /*#__PURE__*/React.createElement("td", {
+    key: ci,
+    style: {
+      padding: '8px 12px',
+      borderBottom: '1px solid ' + COLORS.border,
+      whiteSpace: col.nowrap ? 'nowrap' : 'normal',
+      maxWidth: col.maxWidth || 'none'
+    }
+  }, col.render ? col.render(row) : row[col.key])))))));
+  const FilterSelect = ({
+    label,
+    value,
+    options,
+    onChange
+  }) => /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 11,
+      fontWeight: 600,
+      color: COLORS.textSecondary,
+      textTransform: 'uppercase'
+    }
+  }, label), /*#__PURE__*/React.createElement("select", {
+    value: value,
+    onChange: e => onChange(e.target.value),
+    style: {
+      padding: '6px 10px',
+      borderRadius: 6,
+      border: '1px solid ' + COLORS.border,
+      fontSize: 13,
+      background: '#fff',
+      cursor: 'pointer',
+      minWidth: 140
+    }
+  }, options.map(o => /*#__PURE__*/React.createElement("option", {
+    key: o,
+    value: o
+  }, o))));
+  const PipelineOverview = () => /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+      gap: 16
+    }
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "Total Tentative",
+    value: allData.length,
+    subtitle: "Active pipeline",
+    color: COLORS.primary,
+    icon: "\\u{1f4cb}"
+  }), /*#__PURE__*/React.createElement(Card, {
+    title: "Pipeline Value",
+    value: fmt(totalFees),
+    subtitle: "Total tuition fees",
+    color: COLORS.accent,
+    icon: "\\u{1f4b0}"
+  }), /*#__PURE__*/React.createElement(Card, {
+    title: "VET Enrolments",
+    value: VET_DATA.length,
+    subtitle: fmt(vetFees),
+    color: COLORS.vet,
+    icon: "\\u{1f393}"
+  }), /*#__PURE__*/React.createElement(Card, {
+    title: "U18 Enrolments",
+    value: U18_DATA.length,
+    subtitle: fmt(u18Fees),
+    color: COLORS.u18,
+    icon: "\\u{1f9d1}"
+  }), /*#__PURE__*/React.createElement(Card, {
+    title: "Top Agent",
+    value: byAgent[0]?.name || '-',
+    subtitle: (byAgent[0]?.count || 0) + ' enrolments',
+    color: COLORS.primary,
+    icon: "\\u{1f3e2}"
+  }), /*#__PURE__*/React.createElement(Card, {
+    title: "Countries",
+    value: byCountry.length,
+    subtitle: "Nationalities represented",
+    color: COLORS.secondary,
+    icon: "\\u{1f30f}"
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.cardBg,
+      borderRadius: 12,
+      padding: 20,
+      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+      border: '1px solid ' + COLORS.border
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontSize: 15,
+      fontWeight: 600,
+      color: COLORS.textPrimary,
+      marginBottom: 16
+    }
+  }, "By Country of Citizenship"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 280
+  }, /*#__PURE__*/React.createElement(PieChart, null, /*#__PURE__*/React.createElement(Pie, {
+    data: byCountry,
+    cx: "50%",
+    cy: "50%",
+    outerRadius: 100,
+    innerRadius: 50,
+    dataKey: "value",
+    nameKey: "name",
+    label: ({
+      name,
+      value
+    }) => name + ': ' + value,
+    labelLine: true,
+    fontSize: 11
+  }, byCountry.map((_, i) => /*#__PURE__*/React.createElement(Cell, {
+    key: i,
+    fill: PIE_COLORS[i % PIE_COLORS.length]
+  }))), /*#__PURE__*/React.createElement(Tooltip, null)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.cardBg,
+      borderRadius: 12,
+      padding: 20,
+      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+      border: '1px solid ' + COLORS.border
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontSize: 15,
+      fontWeight: 600,
+      color: COLORS.textPrimary,
+      marginBottom: 16
+    }
+  }, "Commencement Forecast"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 280
+  }, /*#__PURE__*/React.createElement(BarChart, {
+    data: byCommMonth
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: "#f0f0f0"
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    dataKey: "month",
+    fontSize: 11,
+    angle: -30,
+    textAnchor: "end",
+    height: 60
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    fontSize: 11
+  }), /*#__PURE__*/React.createElement(Tooltip, null), /*#__PURE__*/React.createElement(Bar, {
+    dataKey: "count",
+    name: "Students",
+    fill: COLORS.secondary,
+    radius: [4, 4, 0, 0]
+  }))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.cardBg,
+      borderRadius: 12,
+      padding: 20,
+      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+      border: '1px solid ' + COLORS.border
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontSize: 15,
+      fontWeight: 600,
+      color: COLORS.textPrimary,
+      marginBottom: 16
+    }
+  }, "Agent Organisation Breakdown"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 300
+  }, /*#__PURE__*/React.createElement(BarChart, {
+    data: byAgent,
+    layout: "vertical"
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: "#f0f0f0"
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    type: "number",
+    fontSize: 11
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    type: "category",
+    dataKey: "name",
+    width: 160,
+    fontSize: 11
+  }), /*#__PURE__*/React.createElement(Tooltip, null), /*#__PURE__*/React.createElement(Bar, {
+    dataKey: "count",
+    name: "Enrolments",
+    fill: COLORS.accent,
+    radius: [0, 4, 4, 0]
+  })))));
   const U18Pipeline = () => {
     const u18Months = ['All', ...new Set(U18_DATA.map(r => monthLabel(r.startDate)))];
-    return (
-      <div style={{display:'flex',flexDirection:'column',gap:20}}>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))',gap:16}}>
-          <Card title="U18 Students" value={filteredU18.length} color={COLORS.u18} icon="\u{1f9d1}" />
-          <Card title="Total Fees" value={fmt(filteredU18.reduce((s,r)=>s+r.fee,0))} color={COLORS.accent} icon="\u{1f4b0}" />
-          <Card title="Qualification" value="PEP" subtitle="Primary English Preparation" color={COLORS.u18} icon="\u{1f4d6}" />
-        </div>
-        <div style={{display:'flex',gap:12}}>
-          <FilterSelect label="Commencement" value={u18Filter.month} options={u18Months} onChange={v=>setU18Filter(p=>({...p,month:v}))} />
-        </div>
-        <DataTable data={filteredU18} columns={[
-          {header:'Qualification',key:'name',maxWidth:200},{header:'Full Name',key:'fullName',nowrap:true},{header:'Country',key:'citizenship',nowrap:true},
-          {header:'Offer Date',key:'offerDate',nowrap:true},{header:'Commencement',key:'startDate',nowrap:true},{header:'Tuition Fee',render:r=>fmt(r.fee),nowrap:true},
-          {header:'Agent',key:'agentOrg',nowrap:true},{header:'Recruiter',key:'recruiter'}
-        ]} />
-      </div>
-    );
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 20
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: 16
+      }
+    }, /*#__PURE__*/React.createElement(Card, {
+      title: "U18 Students",
+      value: filteredU18.length,
+      color: COLORS.u18,
+      icon: "\\u{1f9d1}"
+    }), /*#__PURE__*/React.createElement(Card, {
+      title: "Total Fees",
+      value: fmt(filteredU18.reduce((s, r) => s + r.fee, 0)),
+      color: COLORS.accent,
+      icon: "\\u{1f4b0}"
+    }), /*#__PURE__*/React.createElement(Card, {
+      title: "Qualification",
+      value: "PEP",
+      subtitle: "Primary English Preparation",
+      color: COLORS.u18,
+      icon: "\\u{1f4d6}"
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 12
+      }
+    }, /*#__PURE__*/React.createElement(FilterSelect, {
+      label: "Commencement",
+      value: u18Filter.month,
+      options: u18Months,
+      onChange: v => setU18Filter(p => ({
+        ...p,
+        month: v
+      }))
+    })), /*#__PURE__*/React.createElement(DataTable, {
+      data: filteredU18,
+      columns: [{
+        header: 'Qualification',
+        key: 'name',
+        maxWidth: 200
+      }, {
+        header: 'Full Name',
+        key: 'fullName',
+        nowrap: true
+      }, {
+        header: 'Country',
+        key: 'citizenship',
+        nowrap: true
+      }, {
+        header: 'Offer Date',
+        key: 'offerDate',
+        nowrap: true
+      }, {
+        header: 'Commencement',
+        key: 'startDate',
+        nowrap: true
+      }, {
+        header: 'Tuition Fee',
+        render: r => fmt(r.fee),
+        nowrap: true
+      }, {
+        header: 'Agent',
+        key: 'agentOrg',
+        nowrap: true
+      }, {
+        header: 'Recruiter',
+        key: 'recruiter'
+      }]
+    }));
   };
-
-  const VETPipeline = () => (
-    <div style={{display:'flex',flexDirection:'column',gap:20}}>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))',gap:16}}>
-        <Card title="VET Students" value={filteredVet.length} color={COLORS.vet} icon="\u{1f393}" />
-        <Card title="Total Fees" value={fmt(filteredVet.reduce((s,r)=>s+r.fee,0))} color={COLORS.accent} icon="\u{1f4b0}" />
-        <Card title="Top Qualification" value={vetByQual[0]?.name||'-'} subtitle={(vetByQual[0]?.count||0)+' enrolments'} color={COLORS.vet} icon="\u{1f4d6}" />
-        <Card title="Qualifications" value={vetByQual.length} subtitle="Different programs" color={COLORS.secondary} icon="\u{1f4ca}" />
-      </div>
-      <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-        <FilterSelect label="Qualification" value={vetFilter.qual} options={vetQuals} onChange={v=>setVetFilter(p=>({...p,qual:v}))} />
-        <FilterSelect label="Agent" value={vetFilter.agent} options={vetAgents} onChange={v=>setVetFilter(p=>({...p,agent:v}))} />
-        <FilterSelect label="Commencement" value={vetFilter.month} options={vetMonths} onChange={v=>setVetFilter(p=>({...p,month:v}))} />
-      </div>
-      <DataTable data={[...filteredVet].sort((a,b)=>a.startDate.localeCompare(b.startDate))} columns={[
-        {header:'Qualification',key:'name',maxWidth:220},{header:'Full Name',key:'fullName',nowrap:true},{header:'Country',key:'citizenship',nowrap:true},
-        {header:'Offer Date',key:'offerDate',nowrap:true},{header:'Commencement',key:'startDate',nowrap:true},{header:'Tuition Fee',render:r=>fmt(r.fee),nowrap:true},
-        {header:'Agent',key:'agentOrg',nowrap:true},{header:'Recruiter',key:'recruiter'}
-      ]} />
-      <div style={{background:COLORS.cardBg,borderRadius:12,padding:20,boxShadow:'0 1px 3px rgba(0,0,0,0.08)',border:'1px solid '+COLORS.border}}>
-        <h3 style={{fontSize:15,fontWeight:600,color:COLORS.textPrimary,marginBottom:16}}>VET Qualifications Breakdown</h3>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={vetByQual}><CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" /><XAxis dataKey="name" fontSize={11} angle={-20} textAnchor="end" height={60} /><YAxis fontSize={11} /><Tooltip /><Bar dataKey="count" name="Enrolments" fill={COLORS.vet} radius={[4,4,0,0]} /></BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
-
+  const VETPipeline = () => /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+      gap: 16
+    }
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "VET Students",
+    value: filteredVet.length,
+    color: COLORS.vet,
+    icon: "\\u{1f393}"
+  }), /*#__PURE__*/React.createElement(Card, {
+    title: "Total Fees",
+    value: fmt(filteredVet.reduce((s, r) => s + r.fee, 0)),
+    color: COLORS.accent,
+    icon: "\\u{1f4b0}"
+  }), /*#__PURE__*/React.createElement(Card, {
+    title: "Top Qualification",
+    value: vetByQual[0]?.name || '-',
+    subtitle: (vetByQual[0]?.count || 0) + ' enrolments',
+    color: COLORS.vet,
+    icon: "\\u{1f4d6}"
+  }), /*#__PURE__*/React.createElement(Card, {
+    title: "Qualifications",
+    value: vetByQual.length,
+    subtitle: "Different programs",
+    color: COLORS.secondary,
+    icon: "\\u{1f4ca}"
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 12,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement(FilterSelect, {
+    label: "Qualification",
+    value: vetFilter.qual,
+    options: vetQuals,
+    onChange: v => setVetFilter(p => ({
+      ...p,
+      qual: v
+    }))
+  }), /*#__PURE__*/React.createElement(FilterSelect, {
+    label: "Agent",
+    value: vetFilter.agent,
+    options: vetAgents,
+    onChange: v => setVetFilter(p => ({
+      ...p,
+      agent: v
+    }))
+  }), /*#__PURE__*/React.createElement(FilterSelect, {
+    label: "Commencement",
+    value: vetFilter.month,
+    options: vetMonths,
+    onChange: v => setVetFilter(p => ({
+      ...p,
+      month: v
+    }))
+  })), /*#__PURE__*/React.createElement(DataTable, {
+    data: [...filteredVet].sort((a, b) => a.startDate.localeCompare(b.startDate)),
+    columns: [{
+      header: 'Qualification',
+      key: 'name',
+      maxWidth: 220
+    }, {
+      header: 'Full Name',
+      key: 'fullName',
+      nowrap: true
+    }, {
+      header: 'Country',
+      key: 'citizenship',
+      nowrap: true
+    }, {
+      header: 'Offer Date',
+      key: 'offerDate',
+      nowrap: true
+    }, {
+      header: 'Commencement',
+      key: 'startDate',
+      nowrap: true
+    }, {
+      header: 'Tuition Fee',
+      render: r => fmt(r.fee),
+      nowrap: true
+    }, {
+      header: 'Agent',
+      key: 'agentOrg',
+      nowrap: true
+    }, {
+      header: 'Recruiter',
+      key: 'recruiter'
+    }]
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.cardBg,
+      borderRadius: 12,
+      padding: 20,
+      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+      border: '1px solid ' + COLORS.border
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontSize: 15,
+      fontWeight: 600,
+      color: COLORS.textPrimary,
+      marginBottom: 16
+    }
+  }, "VET Qualifications Breakdown"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 250
+  }, /*#__PURE__*/React.createElement(BarChart, {
+    data: vetByQual
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: "#f0f0f0"
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    dataKey: "name",
+    fontSize: 11,
+    angle: -20,
+    textAnchor: "end",
+    height: 60
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    fontSize: 11
+  }), /*#__PURE__*/React.createElement(Tooltip, null), /*#__PURE__*/React.createElement(Bar, {
+    dataKey: "count",
+    name: "Enrolments",
+    fill: COLORS.vet,
+    radius: [4, 4, 0, 0]
+  })))));
   const OfferActivity = () => {
     const offersByMonth = useMemo(() => {
       const m = {};
       allData.forEach(r => {
         if (!r.offerDate) return;
-        const key = r.offerDate.slice(0,7); const label = monthLabel(r.offerDate);
-        if (!m[key]) m[key] = {month:label,sortKey:key,vet:0,u18:0,total:0};
-        if (U18_DATA.includes(r)) m[key].u18++; else m[key].vet++;
+        const key = r.offerDate.slice(0, 7);
+        const label = monthLabel(r.offerDate);
+        if (!m[key]) m[key] = {
+          month: label,
+          sortKey: key,
+          vet: 0,
+          u18: 0,
+          total: 0
+        };
+        if (U18_DATA.includes(r)) m[key].u18++;else m[key].vet++;
         m[key].total++;
       });
-      return Object.values(m).sort((a,b)=>a.sortKey.localeCompare(b.sortKey));
+      return Object.values(m).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
     }, []);
-
     const agentPerf = useMemo(() => {
       const m = {};
       allData.forEach(r => {
-        if (!m[r.agentOrg]) m[r.agentOrg] = {agent:r.agentOrg,count:0,fees:0};
-        m[r.agentOrg].count++; m[r.agentOrg].fees += r.fee;
+        if (!m[r.agentOrg]) m[r.agentOrg] = {
+          agent: r.agentOrg,
+          count: 0,
+          fees: 0
+        };
+        m[r.agentOrg].count++;
+        m[r.agentOrg].fees += r.fee;
       });
-      return Object.values(m).sort((a,b)=>b.count-a.count);
+      return Object.values(m).sort((a, b) => b.count - a.count);
     }, []);
-
-    return (
-      <div style={{display:'flex',flexDirection:'column',gap:24}}>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))',gap:16}}>
-          <Card title="Total Offers" value={allData.length} subtitle="All tentative offers" color={COLORS.primary} icon="\u{1f4e8}" />
-          <Card title="March 2026 Offers" value="0" subtitle="Month just started" color={COLORS.warning} icon="\u{1f4c5}" />
-          <Card title="Avg Fee per Student" value={fmt(Math.round(totalFees/allData.length))} color={COLORS.accent} icon="\u{1f4b5}" />
-        </div>
-        <div style={{background:COLORS.cardBg,borderRadius:12,padding:20,boxShadow:'0 1px 3px rgba(0,0,0,0.08)',border:'1px solid '+COLORS.border}}>
-          <h3 style={{fontSize:15,fontWeight:600,color:COLORS.textPrimary,marginBottom:16}}>Offers Issued by Month (VET vs U18)</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={offersByMonth}><CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" /><XAxis dataKey="month" fontSize={11} angle={-30} textAnchor="end" height={60} /><YAxis fontSize={11} allowDecimals={false} /><Tooltip /><Legend /><Bar dataKey="vet" name="VET" stackId="a" fill={COLORS.vet} /><Bar dataKey="u18" name="U18" stackId="a" fill={COLORS.u18} radius={[4,4,0,0]} /></BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div style={{background:COLORS.cardBg,borderRadius:12,padding:20,boxShadow:'0 1px 3px rgba(0,0,0,0.08)',border:'1px solid '+COLORS.border}}>
-          <h3 style={{fontSize:15,fontWeight:600,color:COLORS.textPrimary,marginBottom:16}}>Agent Performance</h3>
-          <DataTable data={agentPerf} columns={[
-            {header:'Agent Organisation',key:'agent'},{header:'Enrolments',key:'count',nowrap:true},
-            {header:'Total Fees',render:r=>fmt(r.fees),nowrap:true},{header:'Avg Fee',render:r=>fmt(Math.round(r.fees/r.count)),nowrap:true}
-          ]} />
-        </div>
-      </div>
-    );
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 24
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: 16
+      }
+    }, /*#__PURE__*/React.createElement(Card, {
+      title: "Total Offers",
+      value: allData.length,
+      subtitle: "All tentative offers",
+      color: COLORS.primary,
+      icon: "\\u{1f4e8}"
+    }), /*#__PURE__*/React.createElement(Card, {
+      title: "March 2026 Offers",
+      value: "0",
+      subtitle: "Month just started",
+      color: COLORS.warning,
+      icon: "\\u{1f4c5}"
+    }), /*#__PURE__*/React.createElement(Card, {
+      title: "Avg Fee per Student",
+      value: fmt(Math.round(totalFees / allData.length)),
+      color: COLORS.accent,
+      icon: "\\u{1f4b5}"
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: COLORS.cardBg,
+        borderRadius: 12,
+        padding: 20,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+        border: '1px solid ' + COLORS.border
+      }
+    }, /*#__PURE__*/React.createElement("h3", {
+      style: {
+        fontSize: 15,
+        fontWeight: 600,
+        color: COLORS.textPrimary,
+        marginBottom: 16
+      }
+    }, "Offers Issued by Month (VET vs U18)"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+      width: "100%",
+      height: 300
+    }, /*#__PURE__*/React.createElement(BarChart, {
+      data: offersByMonth
+    }, /*#__PURE__*/React.createElement(CartesianGrid, {
+      strokeDasharray: "3 3",
+      stroke: "#f0f0f0"
+    }), /*#__PURE__*/React.createElement(XAxis, {
+      dataKey: "month",
+      fontSize: 11,
+      angle: -30,
+      textAnchor: "end",
+      height: 60
+    }), /*#__PURE__*/React.createElement(YAxis, {
+      fontSize: 11,
+      allowDecimals: false
+    }), /*#__PURE__*/React.createElement(Tooltip, null), /*#__PURE__*/React.createElement(Legend, null), /*#__PURE__*/React.createElement(Bar, {
+      dataKey: "vet",
+      name: "VET",
+      stackId: "a",
+      fill: COLORS.vet
+    }), /*#__PURE__*/React.createElement(Bar, {
+      dataKey: "u18",
+      name: "U18",
+      stackId: "a",
+      fill: COLORS.u18,
+      radius: [4, 4, 0, 0]
+    })))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: COLORS.cardBg,
+        borderRadius: 12,
+        padding: 20,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+        border: '1px solid ' + COLORS.border
+      }
+    }, /*#__PURE__*/React.createElement("h3", {
+      style: {
+        fontSize: 15,
+        fontWeight: 600,
+        color: COLORS.textPrimary,
+        marginBottom: 16
+      }
+    }, "Agent Performance"), /*#__PURE__*/React.createElement(DataTable, {
+      data: agentPerf,
+      columns: [{
+        header: 'Agent Organisation',
+        key: 'agent'
+      }, {
+        header: 'Enrolments',
+        key: 'count',
+        nowrap: true
+      }, {
+        header: 'Total Fees',
+        render: r => fmt(r.fees),
+        nowrap: true
+      }, {
+        header: 'Avg Fee',
+        render: r => fmt(Math.round(r.fees / r.count)),
+        nowrap: true
+      }]
+    })));
   };
-
-  return (
-    <div style={{fontFamily:"'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",background:COLORS.bg,minHeight:'100vh'}}>
-      <div style={{background:'linear-gradient(135deg, '+COLORS.primary+' 0%, '+COLORS.secondary+' 100%)',padding:'24px 32px',color:'#fff'}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <div><h1 style={{fontSize:24,fontWeight:700,margin:0}}>Shafston Admission Dashboard</h1><p style={{fontSize:14,opacity:0.85,margin:'4px 0 0'}}>Tentative Enrolment Pipeline</p></div>
-          <div style={{textAlign:'right'}}><div style={{fontSize:32,fontWeight:700}}>{allData.length}</div><div style={{fontSize:13,opacity:0.85}}>Total Tentative | {fmt(totalFees)}</div></div>
-        </div>
-      </div>
-      <div style={{display:'flex',gap:0,background:'#fff',borderBottom:'2px solid '+COLORS.border,padding:'0 32px'}}>
-        {tabs.map((tab,i) => <button key={i} onClick={()=>setActiveTab(i)} style={{padding:'12px 20px',fontSize:14,fontWeight:activeTab===i?600:400,color:activeTab===i?COLORS.primary:COLORS.textSecondary,background:'transparent',border:'none',cursor:'pointer',borderBottom:activeTab===i?'3px solid '+COLORS.primary:'3px solid transparent',transition:'all 0.2s'}}>{tab}</button>)}
-      </div>
-      <div style={{padding:'24px 32px',maxWidth:1400,margin:'0 auto'}}>
-        {activeTab===0 && <PipelineOverview />}
-        {activeTab===1 && <U18Pipeline />}
-        {activeTab===2 && <VETPipeline />}
-        {activeTab===3 && <OfferActivity />}
-      </div>
-      <div style={{padding:'16px 32px',textAlign:'center',fontSize:12,color:COLORS.textSecondary,borderTop:'1px solid '+COLORS.border}}>
-        Generated on: 3 March 2026 | Shafston International College | Data source: aXcelerate API
-      </div>
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      background: COLORS.bg,
+      minHeight: '100vh'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'linear-gradient(135deg, ' + COLORS.primary + ' 0%, ' + COLORS.secondary + ' 100%)',
+      padding: '24px 32px',
+      color: '#fff'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontSize: 24,
+      fontWeight: 700,
+      margin: 0
+    }
+  }, "Shafston Admission Dashboard"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      opacity: 0.85,
+      margin: '4px 0 0'
+    }
+  }, "Tentative Enrolment Pipeline")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'right'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 32,
+      fontWeight: 700
+    }
+  }, allData.length), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      opacity: 0.85
+    }
+  }, "Total Tentative | ", fmt(totalFees))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 0,
+      background: '#fff',
+      borderBottom: '2px solid ' + COLORS.border,
+      padding: '0 32px'
+    }
+  }, tabs.map((tab, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => setActiveTab(i),
+    style: {
+      padding: '12px 20px',
+      fontSize: 14,
+      fontWeight: activeTab === i ? 600 : 400,
+      color: activeTab === i ? COLORS.primary : COLORS.textSecondary,
+      background: 'transparent',
+      border: 'none',
+      cursor: 'pointer',
+      borderBottom: activeTab === i ? '3px solid ' + COLORS.primary : '3px solid transparent',
+      transition: 'all 0.2s'
+    }
+  }, tab))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '24px 32px',
+      maxWidth: 1400,
+      margin: '0 auto'
+    }
+  }, activeTab === 0 && /*#__PURE__*/React.createElement(PipelineOverview, null), activeTab === 1 && /*#__PURE__*/React.createElement(U18Pipeline, null), activeTab === 2 && /*#__PURE__*/React.createElement(VETPipeline, null), activeTab === 3 && /*#__PURE__*/React.createElement(OfferActivity, null)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '16px 32px',
+      textAlign: 'center',
+      fontSize: 12,
+      color: COLORS.textSecondary,
+      borderTop: '1px solid ' + COLORS.border
+    }
+  }, "Generated on: 3 March 2026 | Shafston International College | Data source: aXcelerate API"));
 }
-
-ReactDOM.createRoot(document.getElementById('root')).render(<AdmissionDashboard />);
+ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(AdmissionDashboard, null));
 </script>
 </body>
 </html>
