@@ -6,106 +6,196 @@
 <title>Shafston Weekly Admission Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#0f172a;color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:20px}
-.header{text-align:center;margin-bottom:24px}
-.header h1{font-size:28px;margin-bottom:4px}
-.header .subtitle{color:#94a3b8;font-size:14px}
-.filter-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;justify-content:center}
-.filter-bar select{background:#1e293b;color:#f1f5f9;border:1px solid #334155;padding:8px 12px;border-radius:8px;font-size:13px;min-width:160px}
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px}
-.kpi-card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:16px;text-align:center}
-.kpi-card .value{font-size:28px;font-weight:700;margin:4px 0}
-.kpi-card .label{color:#94a3b8;font-size:12px;text-transform:uppercase}
-.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px;margin-bottom:24px}
-.chart-card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:16px}
-.chart-card h3{font-size:14px;margin-bottom:12px;color:#94a3b8}
-.chart-card canvas{max-height:300px}
-.table-section{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:16px;overflow-x:auto}
-.tabs{display:flex;gap:8px;margin-bottom:12px}
-.tabs button{background:#334155;color:#f1f5f9;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px}
-.tabs button.active{background:#38bdf8;color:#0f172a;font-weight:600}
-.search-box{margin-bottom:12px}
-.search-box input{background:#0f172a;color:#f1f5f9;border:1px solid #334155;padding:8px 12px;border-radius:6px;width:100%;max-width:300px;font-size:13px}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{background:#334155;padding:8px 6px;text-align:left;cursor:pointer;white-space:nowrap;position:sticky;top:0}
-th:hover{background:#475569}
-td{padding:6px;border-bottom:1px solid #334155}
-tr:hover td{background:#334155}
-.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
-.badge-confirmed{background:#065f46;color:#34d399}
-.badge-offered{background:#1e3a5f;color:#38bdf8}
-.badge-pending{background:#78350f;color:#fbbf24}
-.sort-arrow{margin-left:4px;font-size:10px}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f172a; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; min-height: 100vh; }
+  .header { text-align: center; margin-bottom: 24px; }
+  .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .header .subtitle { color: #94a3b8; font-size: 14px; }
+  .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+  .filter-bar label { color: #94a3b8; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-bar select { background: #1e293b; color: #f1f5f9; border: 1px solid #334155; border-radius: 6px; padding: 8px 12px; font-size: 13px; min-width: 160px; cursor: pointer; }
+  .filter-bar select:hover { border-color: #475569; }
+  .progress-bar-container { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+  .progress-bar-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: #94a3b8; }
+  .progress-bar { display: flex; height: 28px; border-radius: 6px; overflow: hidden; }
+  .progress-bar .seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #fff; transition: width 0.5s ease; }
+  .progress-bar .seg-confirmed { background: #34d399; }
+  .progress-bar .seg-offered { background: #38bdf8; }
+  .progress-bar .seg-pending { background: #fbbf24; }
+  .progress-bar .seg-other { background: #6b7280; }
+  .progress-legend { display: flex; gap: 16px; margin-top: 8px; font-size: 12px; color: #94a3b8; }
+  .progress-legend span { display: flex; align-items: center; gap: 4px; }
+  .progress-legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 20px; }
+  .kpi-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; text-align: center; }
+  .kpi-card .kpi-value { font-size: 28px; font-weight: 700; margin: 4px 0; }
+  .kpi-card .kpi-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-card .kpi-sub { font-size: 11px; color: #64748b; margin-top: 4px; }
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .chart-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; }
+  .chart-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #e2e8f0; }
+  .chart-card canvas { max-height: 300px; }
+  .insights-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+  .insights-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #e2e8f0; }
+  .insights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .insight-item { background: #0f172a; border-radius: 6px; padding: 12px; }
+  .insight-item .insight-label { font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+  .insight-item .insight-value { font-size: 18px; font-weight: 700; }
+  .insight-item .insight-detail { font-size: 11px; color: #64748b; margin-top: 4px; }
+  .table-section { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+  .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .table-tabs { display: flex; gap: 4px; }
+  .table-tabs button { background: transparent; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; padding: 6px 16px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+  .table-tabs button.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; font-weight: 600; }
+  .table-tabs button:hover:not(.active) { border-color: #475569; color: #f1f5f9; }
+  .search-box { background: #0f172a; color: #f1f5f9; border: 1px solid #334155; border-radius: 6px; padding: 8px 12px; font-size: 13px; width: 280px; }
+  .search-box::placeholder { color: #475569; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-table th { text-align: left; padding: 8px 6px; color: #94a3b8; font-weight: 600; border-bottom: 1px solid #334155; cursor: pointer; white-space: nowrap; user-select: none; }
+  .data-table th:hover { color: #f1f5f9; }
+  .data-table td { padding: 7px 6px; border-bottom: 1px solid #1e293b; white-space: nowrap; }
+  .data-table tr:hover td { background: #0f172a; }
+  .data-table .badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .badge-confirmed { background: rgba(52,211,153,0.15); color: #34d399; }
+  .badge-offered { background: rgba(56,189,248,0.15); color: #38bdf8; }
+  .badge-pending { background: rgba(251,191,36,0.15); color: #fbbf24; }
+  .badge-other { background: rgba(148,163,184,0.15); color: #94a3b8; }
+  .table-wrapper { overflow-x: auto; max-height: 500px; overflow-y: auto; }
+  .footer { text-align: center; color: #475569; font-size: 12px; padding: 16px 0; }
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    .chart-grid { grid-template-columns: 1fr; }
+    .insights-grid { grid-template-columns: 1fr; }
+    .filter-bar { flex-direction: column; }
+  }
+  @media (max-width: 600px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
 </style>
 </head>
 <body>
+
 <div class="header">
-<h1>Shafston Weekly Admission Dashboard</h1>
-<div class="subtitle">Weekly Tentative Enrolments Report &bull; Generated: 3 Mar 2026</div>
+  <h1>Shafston Weekly Tentative Report Dashboard</h1>
+  <div class="subtitle">As of 4 March 2026 | U18 + VET Enrolments</div>
 </div>
 
+<!-- Filter Bar -->
 <div class="filter-bar">
-<select id="filterType" onchange="renderAll()"><option value="all">All Programs</option><option value="u18">U18</option><option value="vet">VET</option></select>
-<select id="filterStatus" onchange="renderAll()"><option value="all">All Status</option><option value="confirmed">Confirmed</option><option value="offered">Offered</option><option value="pending">Pending</option></select>
-<select id="filterLocation" onchange="renderAll()"><option value="all">All Locations</option></select>
-<select id="filterCountry" onchange="renderAll()"><option value="all">All Countries</option></select>
+  <div class="filter-group">
+    <label>Program Type</label>
+    <select id="filterType" onchange="renderAll()">
+      <option value="all">All Programs</option>
+      <option value="u18">U18 Only</option>
+      <option value="vet">VET Only</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Status</label>
+    <select id="filterStatus" onchange="renderAll()">
+      <option value="all">All Statuses</option>
+      <option value="confirmed">Confirmed</option>
+      <option value="offered">Offered</option>
+      <option value="pending">Pending</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Location</label>
+    <select id="filterLocation" onchange="renderAll()"></select>
+  </div>
+  <div class="filter-group">
+    <label>Country</label>
+    <select id="filterCountry" onchange="renderAll()"></select>
+  </div>
 </div>
 
-<div class="kpi-grid">
-<div class="kpi-card"><div class="label">Total Enrolments</div><div class="value" id="kpiTotal" style="color:#38bdf8">0</div></div>
-<div class="kpi-card"><div class="label">Confirmed</div><div class="value" id="kpiConfirmed" style="color:#34d399">0</div></div>
-<div class="kpi-card"><div class="label">Offered</div><div class="value" id="kpiOffered" style="color:#fbbf24">0</div></div>
-<div class="kpi-card"><div class="label">Pending</div><div class="value" id="kpiPending" style="color:#fb923c">0</div></div>
-<div class="kpi-card"><div class="label">Total Tuition Fee</div><div class="value" id="kpiFee" style="color:#818cf8">$0</div></div>
-<div class="kpi-card"><div class="label">Unique Countries</div><div class="value" id="kpiCountries" style="color:#22d3ee">0</div></div>
+<!-- Status Progress Bar -->
+<div class="progress-bar-container">
+  <div class="progress-bar-label">
+    <span>Enrolment Status Overview</span>
+    <span id="progressTotal"></span>
+  </div>
+  <div class="progress-bar" id="progressBar"></div>
+  <div class="progress-legend" id="progressLegend"></div>
 </div>
 
+<!-- KPI Cards -->
+<div class="kpi-grid" id="kpiGrid"></div>
+
+<!-- Charts -->
 <div class="chart-grid">
-<div class="chart-card"><h3>Status Distribution</h3><canvas id="chartStatus"></canvas></div>
-<div class="chart-card"><h3>Top 10 Countries</h3><canvas id="chartCountries"></canvas></div>
-<div class="chart-card"><h3>Delivery Location</h3><canvas id="chartLocation"></canvas></div>
-<div class="chart-card"><h3>Top 10 Qualifications</h3><canvas id="chartQuals"></canvas></div>
-<div class="chart-card"><h3>Top 10 Agents</h3><canvas id="chartAgents"></canvas></div>
-<div class="chart-card"><h3>Recruitment Officer Workload</h3><canvas id="chartOfficers"></canvas></div>
-<div class="chart-card"><h3>Commencement Timeline</h3><canvas id="chartTimeline"></canvas></div>
-<div class="chart-card"><h3>Tuition Fee by Country (Top 10)</h3><canvas id="chartFeeCountry"></canvas></div>
+  <div class="chart-card"><h3>Enrolment Status Distribution</h3><canvas id="chartStatus"></canvas></div>
+  <div class="chart-card"><h3>Top 10 Countries by Enrolments</h3><canvas id="chartCountries"></canvas></div>
+  <div class="chart-card"><h3>Delivery Location Distribution</h3><canvas id="chartLocation"></canvas></div>
+  <div class="chart-card"><h3>Top 10 Qualifications</h3><canvas id="chartQuals"></canvas></div>
+  <div class="chart-card"><h3>Top 10 Agents</h3><canvas id="chartAgents"></canvas></div>
+  <div class="chart-card"><h3>Recruitment Officer Workload</h3><canvas id="chartOfficers"></canvas></div>
+  <div class="chart-card"><h3>Commencement Timeline (by Month)</h3><canvas id="chartTimeline"></canvas></div>
+  <div class="chart-card"><h3>Tuition Fee by Country (Top 10)</h3><canvas id="chartFeeCountry"></canvas></div>
 </div>
 
+<!-- Extra Analysis Section -->
+<div class="insights-card">
+  <h3>Pipeline Insights &amp; Analysis</h3>
+  <div class="insights-grid" id="insightsGrid"></div>
+</div>
+
+<!-- Data Table -->
 <div class="table-section">
-<div class="tabs">
-<button class="active" onclick="switchTab('all',this)">All</button>
-<button onclick="switchTab('u18',this)">U18</button>
-<button onclick="switchTab('vet',this)">VET</button>
+  <div class="table-header">
+    <div class="table-tabs">
+      <button class="active" onclick="switchTab('all',this)">All</button>
+      <button onclick="switchTab('u18',this)">U18</button>
+      <button onclick="switchTab('vet',this)">VET</button>
+    </div>
+    <input type="text" class="search-box" id="searchBox" placeholder="Search by name, country, qualification..." oninput="renderTable()">
+  </div>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Qualification</th>
+          <th onclick="sortTable(1)">Name</th>
+          <th onclick="sortTable(2)">Country</th>
+          <th onclick="sortTable(3)">Offer Date</th>
+          <th onclick="sortTable(4)">Start Date</th>
+          <th onclick="sortTable(5)">End Date</th>
+          <th onclick="sortTable(6)">Location</th>
+          <th onclick="sortTable(7)">Status</th>
+          <th onclick="sortTable(8)">Fee</th>
+          <th onclick="sortTable(9)">Agent</th>
+          <th onclick="sortTable(10)">Officer</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
 </div>
-<div class="search-box"><input type="text" id="tableSearch" placeholder="Search by name, country, qualification..." oninput="renderTable()"></div>
-<div style="max-height:500px;overflow-y:auto">
-<table>
-<thead><tr>
-<th onclick="sortTable(0)">Qualification <span class="sort-arrow"></span></th>
-<th onclick="sortTable(1)">Name <span class="sort-arrow"></span></th>
-<th onclick="sortTable(2)">Country <span class="sort-arrow"></span></th>
-<th onclick="sortTable(3)">Offer Date <span class="sort-arrow"></span></th>
-<th onclick="sortTable(4)">Start Date <span class="sort-arrow"></span></th>
-<th onclick="sortTable(5)">End Date <span class="sort-arrow"></span></th>
-<th onclick="sortTable(6)">Location <span class="sort-arrow"></span></th>
-<th onclick="sortTable(7)">Status <span class="sort-arrow"></span></th>
-<th onclick="sortTable(8)">Fee <span class="sort-arrow"></span></th>
-<th onclick="sortTable(9)">Agent <span class="sort-arrow"></span></th>
-<th onclick="sortTable(10)">Officer <span class="sort-arrow"></span></th>
-</tr></thead>
-<tbody id="tableBody"></tbody>
-</table>
-</div>
+
+<div class="footer">
+  Generated on: 4 March 2026 | Shafston International College | Weekly Tentative Enrolments Report
 </div>
 
 <script>
+// ── Data ──
 const u18Data = [["High School Preparation","Katalina GOMEZ PAREDES","Colombia","2025-10-15","2026-03-09","2026-06-26","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7200,"Monkeys","Woojeong Jeong"],["High School Preparation","Master Pattaphong PONBUMRUNGWONG","Thailand","2025-12-19","2026-03-16","2026-05-08","Brisbane (Kangaroo Point Campus)","Tentative - Offered",3300,"Eden Student and Migration Service","Pathways"],["High School Preparation","Master Nutthanut SURAWATTHANAKUL","Thailand","2025-12-19","2026-03-16","2026-05-08","Sydney (Sydney Campus)","Tentative - Confirmed",3600,"Eden Student and Migration Service","Pathways"],["High School Preparation","Satarassamee SUWANMACHO","Thailand","2026-02-09","2026-03-16","2026-05-08","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",4400,"IDP Education Pty Limited","Mika Wilson"],["High School Preparation","Thatchakorn TAISAKULTIP","Thailand","2026-01-29","2026-03-16","2026-05-08","Sydney (Sydney Campus)","Tentative - Offered",4000,"Stellar Education & Visa Centre","Mika Wilson"],["High School Preparation","Boonsita CHAYHONG","Thailand","2026-02-20","2026-03-23","2026-05-15","Sydney (Sydney Campus)","Tentative - Confirmed",4000,"The Best Language and Education Centre","Mika Wilson"],["High School Preparation","Nachi MUTO","Japan","2026-02-03","2026-03-30","2026-04-03","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",550,"DEOW Co. Ltd","Mika Wilson"],["High School Preparation","Jiacheng DONG","China (excludes SARs and Taiwan)","2026-01-29","2026-04-13","2027-01-15","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",20900,"Global fashion week pty ltd","Sophia Qiu"],["High School Preparation","Techin LEKWILAI","Thailand","2025-11-26","2026-04-20","2026-05-08","Sydney (Sydney Campus)","Tentative - Confirmed",1350,"IEC Abroad (Thailand) Co. Ltd","Tiya Li"],["High School Preparation","Nateethorn PRAIWUN","Thailand","2025-11-26","2026-04-20","2026-05-08","Sydney (Sydney Campus)","Tentative - Confirmed",1350,"IEC Abroad (Thailand) Co. Ltd","Tiya Li"],["Primary English Preparation","Junyu QIU","China (excludes SARs and Taiwan)","2025-11-28","2026-04-20","2026-06-26","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5200,"AUSTRALIAN GLOBAL IMMIGRATION EXPERTS","Tiya Li"],["Primary English Preparation","Ponpada Pak Ying SIU","Thailand","2026-01-14","2026-04-20","2026-05-08","Brisbane (Kangaroo Point Campus)","",1650,"IEC Abroad (Thailand) Co. Ltd","Tiya Li"],["High School Preparation","Atsushi TSUBAKI","Japan","2026-02-02","2026-04-20","2027-01-29","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",18150,"A-OES","Pathways"],["Shafston Young Learners Camp","Suvd DUGERJAV","Mongolia","2026-02-06","2026-07-06","2026-07-31","Brisbane (Kangaroo Point Campus)","Tentative - Offered",2700,"Eduyoung.com","Woojeong Jeong"],["Shafston Young Learners Camp","Bianca MANZOLINI","Italy","2026-02-26","2026-07-06","2026-08-07","Brisbane (Kangaroo Point Campus)","Tentative - Offered",3675,"Shafston Direct Enrolment","Tiya Li"],["Primary English Preparation","Huai-En CHANG","Taiwan","2024-08-22","2026-07-13","2026-09-18","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5000,"(AMEC) Australian Multicultural Education Centre Pty Ltd","Tiya Li"],["Shafston Young Learners Camp","Yu-Chi HUANG","Taiwan","2026-01-29","2026-07-13","2026-07-31","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",2205,"Chiao Shun international Pty Ltd","Tiya Li"],["High School Preparation","Taeyeon KIM","Korea Republic of (South)","2026-02-13","2026-07-13","2026-11-27","Brisbane (Kangaroo Point Campus)","",1000,"KOKOS KOREA","Woojeong Jeong"],["Primary English Preparation","Hyunjin PARK","Korea Republic of (South)","2026-02-04","2026-07-13","2026-08-07","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",2200,"Shafston Direct Enrolment","Woojeong Jeong"],["Primary English Preparation","Junyu QIU","China (excludes SARs and Taiwan)","2025-11-28","2026-07-13","2026-09-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",4680,"AUSTRALIAN GLOBAL IMMIGRATION EXPERTS","Tiya Li"],["High School Preparation","Vivitawin WEERASOMBUT","Thailand","2026-02-13","2026-07-13","2026-07-24","Sydney (Sydney Campus)","Tentative - Offered",1000,"AUSSIEWAY","Tiya Li"],["Shafston Young Learners Camp","Yun-Yan YEH","Taiwan","2026-01-29","2026-07-13","2026-07-31","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",2205,"Chiao Shun international Pty Ltd","Tiya Li"],["Primary English Preparation","Yaqing DENG","China (excludes SARs and Taiwan)","2026-01-21","2026-08-17","2026-09-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5500,"TRAINING AND LABOUR SOLUTION PTY LTD","Pathways"],["Primary English Preparation","Huai-En CHANG","Taiwan","2024-08-23","2026-10-05","2026-12-11","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5000,"(AMEC) Australian Multicultural Education Centre Pty Ltd","Tiya Li"],["Primary English Preparation","Yaqing DENG","China (excludes SARs and Taiwan)","2026-02-04","2026-10-05","2026-11-06","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",0,"TRAINING AND LABOUR SOLUTION PTY LTD","Pathways"]];
-const vetData = [["Certificate III in Early Childhood Education and Care","Tzu-Ling CHANG","Taiwan","2025-11-04","2026-03-02","2027-03-26","Brisbane (Kangaroo Point Campus)","Tentative - Offered",8000,"Study Central","Tiya Li"],["Diploma of Hospitality Management","Iori SUEMATSU","Japan","2025-12-05","2026-03-09","2026-08-21","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Project Management","Yujun CHENG","China (excludes SARs and Taiwan)","2025-12-08","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",9000,"WOW Education Pty Ltd","Pathways"],["Certificate III in Early Childhood Education and Care","Tatiana Belen DIAZ","Argentina","2025-06-27","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"WILL WORLD EDUCATION","Woojeong Jeong"],["Diploma of Leadership and Management","Anna HARADA","Japan","2026-01-13","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6000,"WOW Education Pty Ltd","Pathways"],["Certificate III in Early Childhood Education and Care","Laura MACENA DE OLIVEIRA","Brazil","2025-06-11","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Make international","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Noderlly MOSQUERA MOSQUERA","Colombia","2023-06-21","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"AVANTI EDUCATION AND MIGRATION","Woojeong Jeong"],["Diploma of Project Management","Valentina MUNOZ PARRA","Colombia","2023-06-14","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"Explora Education Council","Pathways"],["Diploma of Community Services","Emerson PENARANDA PEREZ","Colombia","2024-08-08","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"GLOBAL EDUCATION AUSTRALIA","Woojeong Jeong"],["Advanced Diploma of Business","Ni Luh Made Erik SEPTIARI","Indonesia","2025-08-29","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6500,"FLYAU EDUCATION PTY LTD",""],["Advanced Diploma of Business","Jia-Wei SU","Taiwan","2025-08-26","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Project Management","Yun XIA","China (excludes SARs and Taiwan)","2025-12-09","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Offered",9000,"WOW Education Pty Ltd","Pathways"],["Certificate IV in Business","Simeng ZHANG","China (excludes SARs and Taiwan)","2025-10-15","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",10000,"MONKEY KING STUDENT SERVICE CENTER PTY LTD",""],["Certificate III in Individual Support","Fu-En CHIANG","Taiwan","2026-02-09","2026-04-06","2026-10-02","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5000,"FLYAU EDUCATION PTY LTD","Pathways"],["Certificate III in Individual Support","Doris GORO","Papua New Guinea","2026-02-25","2026-04-06","2026-10-02","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5500,"FLYAU EDUCATION PTY LTD","Pathways"],["Certificate III in Individual Support","Taison KAULI","Papua New Guinea","2026-02-02","2026-04-06","2026-10-02","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5500,"FLYAU EDUCATION PTY LTD","Pathways"],["Certificate III in Individual Support","Sheng-Han TENG","Taiwan","2025-10-07","2026-04-06","2026-07-31","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5000,"ABC Education","Tiya Li"],["Diploma of Hospitality Management","Roselyn DREW","Papua New Guinea","2025-09-04","2026-04-13","2026-12-04","Gold Coast (Southport Campus)","Tentative - Confirmed",3900,"FCG PTY LTD","Pathways"],["Diploma of Hospitality Management","Dewa Gede Buda ARYSTHA","Indonesia","2025-12-01","2026-04-13","2027-09-24","Gold Coast (Southport Campus)","Tentative - Offered",14000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Hospitality Management","Melva CARHUACHIN MINAYA","Peru","2024-05-03","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"ALUMNOS INTERNACIONALES","Woojeong Jeong"],["Diploma of Hospitality Management","Barbara GONZALEZ MARTINEZ","Mexico","2024-08-02","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"GrowPro Experience Pty Ltd","Woojeong Jeong"],["Diploma of Hospitality Management","Shuhei KIKUCHI","Japan","2024-08-19","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"Australia Ryugaku Centre","Mika Wilson"],["Certificate IV in Kitchen Management","Stanley MAE","Papua New Guinea","2025-12-03","2026-04-13","2027-09-24","Gold Coast (Southport Campus)","Tentative - Offered",14000,"FCG PTY LTD","Pathways"],["Diploma of Hospitality Management","Andres Felipe MEJIA FAJARDO","Colombia","2024-05-20","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"GAIA LIFE PROJECT",""],["Diploma of Hospitality Management","Chinami MORI","Japan","2024-05-16","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"Active Woman Co. Ltd","Mika Wilson"],["Diploma of Hospitality Management","Jungmee SHIN","Korea Republic of (South)","2024-05-21","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"Baron Education","Woojeong Jeong"],["Certificate IV in Kitchen Management","Eddie VINCENT","Papua New Guinea","2025-10-07","2026-04-13","2027-09-24","Gold Coast (Southport Campus)","Tentative - Offered",14000,"FLYAU EDUCATION PTY LTD","Pathways"],["Certificate IV in Information Technology","Lina Paulus IFINA","Papua New Guinea","2026-01-28","2026-04-20","2027-05-14","Brisbane (Kangaroo Point Campus)","Tentative - Offered",10000,"FCG PTY LTD","Pathways"],["Diploma of Hospitality Management","Ida Ayu Pertiwi ARIYASA","Indonesia","2025-08-29","2026-05-11","2027-01-01","Gold Coast (Southport Campus)","Tentative - Confirmed",5900,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Hospitality Management","Kay-Yu WU","Taiwan","2025-08-29","2026-05-11","2027-01-01","Gold Coast (Southport Campus)","Tentative - Confirmed",5900,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Information Technology","Punnaphat CHUENJAROEN","Thailand","2024-12-04","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7500,"SOL EDU Pty Ltd","Mika Wilson"],["Diploma of Early Childhood Education and Care","Paolo DURANDAL VALDES","Chile","2025-03-11","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Dingoos Australia Pty. Ltd.","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Natalia Hernandez Bedoya","Colombia","2025-03-17","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Helpmate Student Agency",""],["Diploma of Early Childhood Education and Care","Wing Yan LAM","Hong Kong (SAR of China)","2024-08-16","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"ACIC Pty Ltd",""],["Diploma of Early Childhood Education and Care","Jaqueline VARGAS","Brazil","2025-04-10","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Connection Australia Student Services",""],["Diploma of Early Childhood Education and Care","Mesawadee YAMAPAI","Thailand","2024-12-13","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",9000,"i-Believe Study Abroad",""],["Diploma of Community Services","Kelzy Mart Gabrielle DOLLOSO","Philippines","2026-02-12","2026-06-22","2027-07-16","Brisbane (Kangaroo Point Campus)","Tentative - Offered",11000,"Shafston Direct Enrolment","Pathways"],["Diploma of Community Services","Hyosu KIM","Korea Republic of (South)","2026-02-09","2026-06-22","2027-07-16","Brisbane (Kangaroo Point Campus)","Tentative - Offered",11000,"QB GLOBAL","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Priscila SILVA","Brazil","2025-02-14","2026-06-22","2027-07-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"BUENO EDUCATION",""],["Certificate III in Individual Support","Ayano TOMIYAMA","Japan","2025-07-11","2026-06-29","2026-10-23","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5000,"Mirai Bridge","Mika Wilson"],["Diploma of Hospitality Management","Sangmoon SON","Korea Republic of (South)","2024-06-13","2026-07-06","2026-12-18","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"SOL EDU Pty Ltd",""],["Diploma of Hospitality Management","Hong Chi VU","Vietnam","2026-02-02","2026-07-06","2027-12-17","Gold Coast (Southport Campus)","Tentative - Offered",16000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Early Childhood Education and Care","Widad BAEZ SUAREZ","Colombia","2023-06-08","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"One Way Australian Education",""],["Diploma of Project Management","Angela CHAVEZ PINEROS","Colombia","2025-05-12","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6500,"Migrate",""],["Advanced Diploma of Business","Kiat Poh FAU","Malaysia","2025-09-04","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Community Services","Karla MARTE ARAQUE","Venezuela","2025-08-15","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"WILL WORLD EDUCATION",""],["Diploma of Information Technology","Wilsinton ORTEGA VEGA","Ecuador","2024-12-18","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7500,"LIIV MIGRATION",""],["Diploma of Community Services","Maria Fernanda YEPEZ TUFINO","Spain","2025-09-30","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Dingoos Australia Pty. Ltd.",""],["Diploma of Early Childhood Education and Care","Dauany BARBOZA","Brazil","2025-05-16","2026-08-17","2027-09-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Tagarela Intercambios",""],["Certificate III in Early Childhood Education and Care","Belen RONCERO LOPEZ","Spain","2025-12-08","2026-08-17","2027-09-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Experience Australia","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Diana TAPIA NETO","Ecuador","2025-02-21","2026-08-17","2027-09-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Go Study Australia Pty Ltd",""],["Diploma of Hospitality Management","Kang-Yu CHANG","Taiwan","2025-09-02","2026-09-14","2027-05-07","Gold Coast (Southport Campus)","Tentative - Confirmed",4400,"Elite AUS Migration and Education Consultancy",""],["Advanced Diploma of Business","Sheng-Lun TU","Taiwan","2025-08-29","2026-09-14","2027-09-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6500,"FLYAU EDUCATION PTY LTD",""],["Certificate III in Individual Support","Choeun KIM","Korea Republic of (South)","2025-08-01","2026-09-21","2027-01-29","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5000,"KOKOS KOREA","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Thi Nhu Y BUI","Vietnam","2024-05-27","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6000,"BCI Education",""],["Diploma of Information Technology","Wander Lucio DOS ANJOS SANTOS","Brazil","2025-04-14","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7500,"Hello Australia/ Hello Study",""],["Diploma of Early Childhood Education and Care","Mayra FERNANDEZ CAICEDO","Colombia","2025-04-02","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Australia Student Recruitment",""],["Diploma of Information Technology","Beatriz MORATO SILVA CAMARGO","Brazil","2025-05-27","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7500,"Hello Australia/ Hello Study",""],["Certificate III in Early Childhood Education and Care","Keli Yesari MURILLO MENA","Colombia","2025-06-04","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Global Connection",""],["Diploma of Hospitality Management","Sara SANTOS AGUILAR","Colombia","2025-05-23","2026-09-28","2027-03-12","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"Migrate",""],["Diploma of Early Childhood Education and Care","Jessica Frine SOBERANIS HIDALGO","Mexico","2025-10-01","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"YouTOOProject",""],["Diploma of Community Services","Fu-En CHIANG","Taiwan","2026-02-09","2026-10-19","2027-11-12","Brisbane (Kangaroo Point Campus)","Tentative - Offered",9000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Community Services","Doris GORO","Papua New Guinea","2026-02-27","2026-10-19","2027-11-12","Brisbane (Kangaroo Point Campus)","Tentative - Offered",9500,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Community Services","Taison KAULI","Papua New Guinea","2026-02-02","2026-10-19","2027-11-12","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",9500,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Early Childhood Education and Care","Laura ALFONSO MONROY","Colombia","2025-07-29","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"LIIV MIGRATION",""],["Diploma of Early Childhood Education and Care","Mayara DA SILVA","Brazil","2025-06-24","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Fernandes Migration",""],["Diploma of Early Childhood Education and Care","Monica MOJICA MACIAS","Colombia","2024-02-14","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"VETA",""],["Diploma of Early Childhood Education and Care","Luize PERES FERREIRA","Brazil","2025-07-30","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Connection Australia Student Services",""],["Diploma of Early Childhood Education and Care","Konomi YAMANAKA","Japan","2025-07-04","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"Shafston Direct Enrolment",""],["Diploma of Hospitality Management","Ni Putu Ayu Sri DIANAWATI","Indonesia","2025-08-29","2027-01-11","2027-09-03","Gold Coast (Southport Campus)","Tentative - Confirmed",6000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Early Childhood Education and Care","Flavia DOURADO OLIVEIRA","Brazil","2025-05-15","2027-01-11","2028-02-04","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Hello Australia/ Hello Study",""],["Diploma of Hospitality Management","Shih-Hao WANG","Taiwan","2025-08-29","2027-01-11","2027-09-03","Gold Coast (Southport Campus)","Tentative - Confirmed",5900,"FLYAU EDUCATION PTY LTD",""],["Diploma of Early Childhood Education and Care","Chisaki YAMAHATA","Japan","2025-06-30","2027-01-11","2028-02-04","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"SOL EDU Pty Ltd",""],["Advanced Diploma of Business","Ida Ayu Pertiwi ARIYASA","Indonesia","2026-01-14","2027-01-18","2028-02-11","Brisbane (Kangaroo Point Campus)","Tentative - Offered",10000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Information Technology","Alvine TOHVER","Estonia","2025-07-23","2027-01-18","2028-02-11","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",9000,"Shafston Direct Enrolment",""],["Diploma of Project Management","Laura ZUNIGA VIVAS","Colombia","2024-03-04","2027-01-18","2028-02-11","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",4900,"PROSTUDY AUSTRALIA",""],["Diploma of Early Childhood Education and Care","Anai Romina HERRERA PEREZ","Ecuador","2025-11-03","2027-02-15","2028-03-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"(LAE) Latino Australia Education SAS",""],["Diploma of Early Childhood Education and Care","Karen DE SOUZA POTER","Brazil","2025-07-15","2027-03-15","2028-04-07","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Fernandes Migration",""],["Diploma of Early Childhood Education and Care","Alicia KUHN NUNES","Brazil","2025-06-10","2027-03-15","2028-04-07","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Just Go Agency",""],["Diploma of Hospitality Management","Leovigildo ABELLO RODRIGUEZ","Colombia","2024-05-28","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"A4S - AGENCY FOR STUDENTS",""],["Diploma of Hospitality Management","I Komang Bagia ANTARA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ni Komang Ratih BIANTARI","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Oi Lin CHAN","Hong Kong (SAR of China)","2024-05-24","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"Connect Education Network Pty Ltd",""],["Diploma of Hospitality Management","I Putu Aditya KARDITHA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ngakan Putu Agusta Cahyadi PUTRA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","I Made SUBRATA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Dewa Gde Aditya WIJAYA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","I Gusti Agung Gede Puspa YOGA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Early Childhood Education and Care","Tzu-Ling CHANG","Taiwan","2025-11-04","2027-04-19","2028-05-12","Brisbane (Kangaroo Point Campus)","Tentative - Offered",8000,"Study Central","Tiya Li"],["Diploma of Information Technology","Natasha HASIMA","Papua New Guinea","2025-09-30","2027-04-19","2028-05-12","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",10000,"FCG PTY LTD","Pathways"],["Advanced Diploma of Business","Yujun CHENG","China (excludes SARs and Taiwan)","2025-12-08","2027-05-03","2028-05-26","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",10000,"WOW Education Pty Ltd","Pathways"],["Advanced Diploma of Business","Yun XIA","China (excludes SARs and Taiwan)","2025-12-09","2027-05-03","2028-05-26","Brisbane (Kangaroo Point Campus)","Tentative - Offered",10000,"WOW Education Pty Ltd","Pathways"],["Diploma of Early Childhood Education and Care","Tatiana Belen DIAZ","Argentina","2025-06-27","2027-05-24","2028-06-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"WILL WORLD EDUCATION","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Laura MACENA DE OLIVEIRA","Brazil","2025-06-12","2027-05-24","2028-06-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Make international","Woojeong Jeong"],["Diploma of Information Technology","Lina Paulus IFINA","Papua New Guinea","2026-01-28","2027-06-07","2028-06-30","Brisbane (Kangaroo Point Campus)","Tentative - Offered",10000,"FCG PTY LTD","Pathways"],["Diploma of Hospitality Management","Chia-Hui CHIANG","Taiwan","2025-11-18","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Jinghan DENG","China (excludes SARs and Taiwan)","2025-11-21","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ni Kadek Nayra FRANNINDYA","Indonesia","2025-08-25","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","I Gede Andika KRISNATA","Indonesia","2025-08-25","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ricky Dwi PAMBUDI","Indonesia","2025-08-25","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ni Wayan VIRAYANTI","Indonesia","2025-09-01","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Eka Aprilia WIDIARTO","Indonesia","2025-08-25","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Wenzhile WU","China (excludes SARs and Taiwan)","2025-09-17","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Eddie VINCENT","Papua New Guinea","2025-10-08","2027-09-27","2028-03-10","Gold Coast (Southport Campus)","Tentative - Offered",4000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Hospitality Management","Stanley MAE","Papua New Guinea","2025-12-03","2027-10-25","2028-04-07","Gold Coast (Southport Campus)","Tentative - Offered",4000,"FCG PTY LTD","Pathways"],["Diploma of Early Childhood Education and Care","Belen RONCERO LOPEZ","Spain","2025-12-08","2027-10-25","2028-11-17","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Experience Australia","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Keli Yesari MURILLO MENA","Colombia","2025-06-05","2027-11-22","2028-12-15","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Global Connection",""]];
+const vetData = [["Certificate III in Early Childhood Education and Care","Tzu-Ling CHANG","Taiwan","2025-11-04","2026-03-02","2027-03-26","Brisbane (Kangaroo Point Campus)","Tentative - Offered",8000,"Study Central","Tiya Li"],["Diploma of Hospitality Management","Iori SUEMATSU","Japan","2025-12-05","2026-03-09","2026-08-21","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD","Pathways"],["General English","Janis PEREZ CORTINEZ","Colombia","2025-10-13","2026-03-16","2026-10-02","Sydney (Sydney Campus)","Tentative - Confirmed",6250,"One Way Australian Education",""],["Diploma of Project Management","Yujun CHENG","China (excludes SARs and Taiwan)","2025-12-08","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",9000,"WOW Education Pty Ltd","Pathways"],["Certificate III in Early Childhood Education and Care","Tatiana Belen DIAZ","Argentina","2025-06-27","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"WILL WORLD EDUCATION","Woojeong Jeong"],["Diploma of Leadership and Management","Anna HARADA","Japan","2026-01-13","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6000,"WOW Education Pty Ltd","Pathways"],["Certificate III in Early Childhood Education and Care","Laura MACENA DE OLIVEIRA","Brazil","2025-06-11","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Make international","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Noderlly MOSQUERA MOSQUERA","Colombia","2023-06-21","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"AVANTI EDUCATION AND MIGRATION","Woojeong Jeong"],["Diploma of Project Management","Valentina MUNOZ PARRA","Colombia","2023-06-14","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"Explora Education Council","Pathways"],["Diploma of Community Services","Emerson PENARANDA PEREZ","Colombia","2024-08-08","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"GLOBAL EDUCATION AUSTRALIA","Woojeong Jeong"],["Advanced Diploma of Business","Ni Luh Made Erik SEPTIARI","Indonesia","2025-08-29","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6500,"FLYAU EDUCATION PTY LTD",""],["Advanced Diploma of Business","Jia-Wei SU","Taiwan","2025-08-26","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Project Management","Yun XIA","China (excludes SARs and Taiwan)","2025-12-09","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Offered",9000,"WOW Education Pty Ltd","Pathways"],["Certificate IV in Business","Simeng ZHANG","China (excludes SARs and Taiwan)","2025-10-15","2026-03-23","2027-04-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",10000,"MONKEY KING STUDENT SERVICE CENTER PTY LTD",""],["Certificate III in Individual Support","Fu-En CHIANG","Taiwan","2026-02-09","2026-04-06","2026-10-02","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5000,"FLYAU EDUCATION PTY LTD","Pathways"],["Certificate III in Individual Support","Doris GORO","Papua New Guinea","2026-02-25","2026-04-06","2026-10-02","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5500,"FLYAU EDUCATION PTY LTD","Pathways"],["Certificate III in Individual Support","Taison KAULI","Papua New Guinea","2026-02-02","2026-04-06","2026-10-02","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5500,"FLYAU EDUCATION PTY LTD","Pathways"],["Certificate III in Individual Support","Sheng-Han TENG","Taiwan","2025-10-07","2026-04-06","2026-07-31","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5000,"ABC Education","Tiya Li"],["Diploma of Hospitality Management","Roselyn DREW","Papua New Guinea","2025-09-04","2026-04-13","2026-12-04","Gold Coast (Southport Campus)","Tentative - Confirmed",3900,"FCG PTY LTD","Pathways"],["Diploma of Hospitality Management","Dewa Gede Buda ARYSTHA","Indonesia","2025-12-01","2026-04-13","2027-09-24","Gold Coast (Southport Campus)","Tentative - Offered",14000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Hospitality Management","Melva CARHUACHIN MINAYA","Peru","2024-05-03","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"ALUMNOS INTERNACIONALES","Woojeong Jeong"],["Diploma of Hospitality Management","Barbara GONZALEZ MARTINEZ","Mexico","2024-08-02","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"GrowPro Experience Pty Ltd","Woojeong Jeong"],["Diploma of Hospitality Management","Shuhei KIKUCHI","Japan","2024-08-19","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"Australia Ryugaku Centre","Mika Wilson"],["Certificate IV in Kitchen Management","Stanley MAE","Papua New Guinea","2025-12-03","2026-04-13","2027-09-24","Gold Coast (Southport Campus)","Tentative - Offered",14000,"FCG PTY LTD","Pathways"],["Diploma of Hospitality Management","Andres Felipe MEJIA FAJARDO","Colombia","2024-05-20","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"GAIA LIFE PROJECT",""],["Diploma of Hospitality Management","Chinami MORI","Japan","2024-05-16","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"Active Woman Co. Ltd","Mika Wilson"],["Diploma of Hospitality Management","Jungmee SHIN","Korea Republic of (South)","2024-05-21","2026-04-13","2026-09-25","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"Baron Education","Woojeong Jeong"],["Certificate IV in Kitchen Management","Eddie VINCENT","Papua New Guinea","2025-10-07","2026-04-13","2027-09-24","Gold Coast (Southport Campus)","Tentative - Offered",14000,"FLYAU EDUCATION PTY LTD","Pathways"],["Certificate IV in Information Technology","Lina Paulus IFINA","Papua New Guinea","2026-01-28","2026-04-20","2027-05-14","Brisbane (Kangaroo Point Campus)","Tentative - Offered",10000,"FCG PTY LTD","Pathways"],["General English","Cristian Andres QUINTERO SARMIENTO","Colombia","2025-05-15","2026-05-04","2026-07-24","Brisbane (Kangaroo Point Campus)","Tentative - Offered",3420,"Monkeys","Woojeong Jeong"],["Diploma of Hospitality Management","Ida Ayu Pertiwi ARIYASA","Indonesia","2025-08-29","2026-05-11","2027-01-01","Gold Coast (Southport Campus)","Tentative - Confirmed",5900,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Hospitality Management","Kay-Yu WU","Taiwan","2025-08-29","2026-05-11","2027-01-01","Gold Coast (Southport Campus)","Tentative - Confirmed",5900,"FLYAU EDUCATION PTY LTD","Pathways"],["Shafston Flexi Cambridge - FCE","Mizuho HOKA","Japan","2025-01-16","2026-05-18","2026-08-07","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",4260,"Last Resort Australia","Mika Wilson"],["Diploma of Information Technology","Punnaphat CHUENJAROEN","Thailand","2024-12-04","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7500,"SOL EDU Pty Ltd","Mika Wilson"],["Diploma of Early Childhood Education and Care","Paolo DURANDAL VALDES","Chile","2025-03-11","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Dingoos Australia Pty. Ltd.","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Natalia Hernandez Bedoya","Colombia","2025-03-17","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Helpmate Student Agency",""],["Diploma of Early Childhood Education and Care","Wing Yan LAM","Hong Kong (SAR of China)","2024-08-16","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"ACIC Pty Ltd",""],["Diploma of Early Childhood Education and Care","Jaqueline VARGAS","Brazil","2025-04-10","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Connection Australia Student Services",""],["Diploma of Early Childhood Education and Care","Mesawadee YAMAPAI","Thailand","2024-12-13","2026-05-25","2027-06-18","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",9000,"i-Believe Study Abroad",""],["Diploma of Community Services","Kelzy Mart Gabrielle DOLLOSO","Philippines","2026-02-12","2026-06-22","2027-07-16","Brisbane (Kangaroo Point Campus)","Tentative - Offered",11000,"Shafston Direct Enrolment","Pathways"],["Diploma of Community Services","Hyosu KIM","Korea Republic of (South)","2026-02-09","2026-06-22","2027-07-16","Brisbane (Kangaroo Point Campus)","Tentative - Offered",11000,"QB GLOBAL","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Priscila SILVA","Brazil","2025-02-14","2026-06-22","2027-07-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"BUENO EDUCATION",""],["Certificate III in Individual Support","Ayano TOMIYAMA","Japan","2025-07-11","2026-06-29","2026-10-23","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",5000,"Mirai Bridge","Mika Wilson"],["Diploma of Hospitality Management","Sangmoon SON","Korea Republic of (South)","2024-06-13","2026-07-06","2026-12-18","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"SOL EDU Pty Ltd",""],["Diploma of Hospitality Management","Hong Chi VU","Vietnam","2026-02-02","2026-07-06","2027-12-17","Gold Coast (Southport Campus)","Tentative - Offered",16000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Early Childhood Education and Care","Widad BAEZ SUAREZ","Colombia","2023-06-08","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"One Way Australian Education",""],["Diploma of Project Management","Angela CHAVEZ PINEROS","Colombia","2025-05-12","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6500,"Migrate",""],["Advanced Diploma of Business","Kiat Poh FAU","Malaysia","2025-09-04","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Community Services","Karla MARTE ARAQUE","Venezuela","2025-08-15","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"WILL WORLD EDUCATION",""],["Diploma of Information Technology","Wilsinton ORTEGA VEGA","Ecuador","2024-12-18","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7500,"LIIV MIGRATION",""],["Shafston Flexi Cambridge","Cristian Andres QUINTERO SARMIENTO","Colombia","2025-05-15","2026-07-27","2027-01-22","Brisbane (Kangaroo Point Campus)","Tentative - Offered",6840,"Monkeys","Woojeong Jeong"],["Diploma of Community Services","Maria Fernanda YEPEZ TUFINO","Spain","2025-09-30","2026-07-27","2027-08-20","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Dingoos Australia Pty. Ltd.",""],["Diploma of Early Childhood Education and Care","Dauany BARBOZA","Brazil","2025-05-16","2026-08-17","2027-09-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Tagarela Intercambios",""],["Certificate III in Early Childhood Education and Care","Belen RONCERO LOPEZ","Spain","2025-12-08","2026-08-17","2027-09-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Experience Australia","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Diana TAPIA NETO","Ecuador","2025-02-21","2026-08-17","2027-09-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Go Study Australia Pty Ltd",""],["Diploma of Hospitality Management","Kang-Yu CHANG","Taiwan","2025-09-02","2026-09-14","2027-05-07","Gold Coast (Southport Campus)","Tentative - Confirmed",4400,"Elite AUS Migration and Education Consultancy",""],["Advanced Diploma of Business","Sheng-Lun TU","Taiwan","2025-08-29","2026-09-14","2027-09-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6500,"FLYAU EDUCATION PTY LTD",""],["Certificate III in Individual Support","Choeun KIM","Korea Republic of (South)","2025-08-01","2026-09-21","2027-01-29","Brisbane (Kangaroo Point Campus)","Tentative - Offered",5000,"KOKOS KOREA","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Thi Nhu Y BUI","Vietnam","2024-05-27","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",6000,"BCI Education",""],["Diploma of Information Technology","Wander Lucio DOS ANJOS SANTOS","Brazil","2025-04-14","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7500,"Hello Australia/ Hello Study",""],["Diploma of Early Childhood Education and Care","Mayra FERNANDEZ CAICEDO","Colombia","2025-04-02","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Australia Student Recruitment",""],["Diploma of Information Technology","Beatriz MORATO SILVA CAMARGO","Brazil","2025-05-27","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7500,"Hello Australia/ Hello Study",""],["Certificate III in Early Childhood Education and Care","Keli Yesari MURILLO MENA","Colombia","2025-06-04","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Global Connection",""],["Diploma of Hospitality Management","Sara SANTOS AGUILAR","Colombia","2025-05-23","2026-09-28","2027-03-12","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"Migrate",""],["Diploma of Early Childhood Education and Care","Jessica Frine SOBERANIS HIDALGO","Mexico","2025-10-01","2026-09-28","2027-10-22","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"YouTOOProject",""],["Diploma of Community Services","Fu-En CHIANG","Taiwan","2026-02-09","2026-10-19","2027-11-12","Brisbane (Kangaroo Point Campus)","Tentative - Offered",9000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Community Services","Doris GORO","Papua New Guinea","2026-02-27","2026-10-19","2027-11-12","Brisbane (Kangaroo Point Campus)","Tentative - Offered",9500,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Community Services","Taison KAULI","Papua New Guinea","2026-02-02","2026-10-19","2027-11-12","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",9500,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Early Childhood Education and Care","Laura ALFONSO MONROY","Colombia","2025-07-29","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"LIIV MIGRATION",""],["Diploma of Early Childhood Education and Care","Mayara DA SILVA","Brazil","2025-06-24","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Fernandes Migration",""],["Diploma of Early Childhood Education and Care","Monica MOJICA MACIAS","Colombia","2024-02-14","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"VETA",""],["Diploma of Early Childhood Education and Care","Luize PERES FERREIRA","Brazil","2025-07-30","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Connection Australia Student Services",""],["Diploma of Early Childhood Education and Care","Konomi YAMANAKA","Japan","2025-07-04","2026-10-28","2027-11-19","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",7000,"Shafston Direct Enrolment",""],["Diploma of Hospitality Management","Ni Putu Ayu Sri DIANAWATI","Indonesia","2025-08-29","2027-01-11","2027-09-03","Gold Coast (Southport Campus)","Tentative - Confirmed",6000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Early Childhood Education and Care","Flavia DOURADO OLIVEIRA","Brazil","2025-05-15","2027-01-11","2028-02-04","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Hello Australia/ Hello Study",""],["Diploma of Hospitality Management","Shih-Hao WANG","Taiwan","2025-08-29","2027-01-11","2027-09-03","Gold Coast (Southport Campus)","Tentative - Confirmed",5900,"FLYAU EDUCATION PTY LTD",""],["Diploma of Early Childhood Education and Care","Chisaki YAMAHATA","Japan","2025-06-30","2027-01-11","2028-02-04","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"SOL EDU Pty Ltd",""],["Advanced Diploma of Business","Ida Ayu Pertiwi ARIYASA","Indonesia","2026-01-14","2027-01-18","2028-02-11","Brisbane (Kangaroo Point Campus)","Tentative - Offered",10000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Information Technology","Alvine TOHVER","Estonia","2025-07-23","2027-01-18","2028-02-11","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",9000,"Shafston Direct Enrolment",""],["Diploma of Project Management","Laura ZUNIGA VIVAS","Colombia","2024-03-04","2027-01-18","2028-02-11","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",4900,"PROSTUDY AUSTRALIA",""],["Diploma of Early Childhood Education and Care","Anai Romina HERRERA PEREZ","Ecuador","2025-11-03","2027-02-15","2028-03-10","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"(LAE) Latino Australia Education SAS",""],["Diploma of Early Childhood Education and Care","Karen DE SOUZA POTER","Brazil","2025-07-15","2027-03-15","2028-04-07","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Fernandes Migration",""],["Diploma of Early Childhood Education and Care","Alicia KUHN NUNES","Brazil","2025-06-10","2027-03-15","2028-04-07","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Just Go Agency",""],["Diploma of Hospitality Management","Leovigildo ABELLO RODRIGUEZ","Colombia","2024-05-28","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"A4S - AGENCY FOR STUDENTS",""],["Diploma of Hospitality Management","I Komang Bagia ANTARA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ni Komang Ratih BIANTARI","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Oi Lin CHAN","Hong Kong (SAR of China)","2024-05-24","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",3000,"Connect Education Network Pty Ltd",""],["Diploma of Hospitality Management","I Putu Aditya KARDITHA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ngakan Putu Agusta Cahyadi PUTRA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","I Made SUBRATA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Dewa Gde Aditya WIJAYA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","I Gusti Agung Gede Puspa YOGA","Indonesia","2025-08-25","2027-04-12","2027-09-24","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Early Childhood Education and Care","Tzu-Ling CHANG","Taiwan","2025-11-04","2027-04-19","2028-05-12","Brisbane (Kangaroo Point Campus)","Tentative - Offered",8000,"Study Central","Tiya Li"],["Diploma of Information Technology","Natasha HASIMA","Papua New Guinea","2025-09-30","2027-04-19","2028-05-12","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",10000,"FCG PTY LTD","Pathways"],["Advanced Diploma of Business","Yujun CHENG","China (excludes SARs and Taiwan)","2025-12-08","2027-05-03","2028-05-26","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",10000,"WOW Education Pty Ltd","Pathways"],["Advanced Diploma of Business","Yun XIA","China (excludes SARs and Taiwan)","2025-12-09","2027-05-03","2028-05-26","Brisbane (Kangaroo Point Campus)","Tentative - Offered",10000,"WOW Education Pty Ltd","Pathways"],["Diploma of Early Childhood Education and Care","Tatiana Belen DIAZ","Argentina","2025-06-27","2027-05-24","2028-06-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"WILL WORLD EDUCATION","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Laura MACENA DE OLIVEIRA","Brazil","2025-06-12","2027-05-24","2028-06-16","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Make international","Woojeong Jeong"],["Diploma of Information Technology","Lina Paulus IFINA","Papua New Guinea","2026-01-28","2027-06-07","2028-06-30","Brisbane (Kangaroo Point Campus)","Tentative - Offered",10000,"FCG PTY LTD","Pathways"],["Diploma of Hospitality Management","Chia-Hui CHIANG","Taiwan","2025-11-18","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Jinghan DENG","China (excludes SARs and Taiwan)","2025-11-21","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ni Kadek Nayra FRANNINDYA","Indonesia","2025-08-25","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","I Gede Andika KRISNATA","Indonesia","2025-08-25","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ricky Dwi PAMBUDI","Indonesia","2025-08-25","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Ni Wayan VIRAYANTI","Indonesia","2025-09-01","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Eka Aprilia WIDIARTO","Indonesia","2025-08-25","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Wenzhile WU","China (excludes SARs and Taiwan)","2025-09-17","2027-08-02","2028-01-14","Gold Coast (Southport Campus)","Tentative - Confirmed",4000,"FLYAU EDUCATION PTY LTD",""],["Diploma of Hospitality Management","Eddie VINCENT","Papua New Guinea","2025-10-08","2027-09-27","2028-03-10","Gold Coast (Southport Campus)","Tentative - Offered",4000,"FLYAU EDUCATION PTY LTD","Pathways"],["Diploma of Hospitality Management","Stanley MAE","Papua New Guinea","2025-12-03","2027-10-25","2028-04-07","Gold Coast (Southport Campus)","Tentative - Offered",4000,"FCG PTY LTD","Pathways"],["Diploma of Early Childhood Education and Care","Belen RONCERO LOPEZ","Spain","2025-12-08","2027-10-25","2028-11-17","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Experience Australia","Woojeong Jeong"],["Diploma of Early Childhood Education and Care","Keli Yesari MURILLO MENA","Colombia","2025-06-05","2027-11-22","2028-12-15","Brisbane (Kangaroo Point Campus)","Tentative - Confirmed",8000,"Global Connection",""]];
 const COLORS = ['#38bdf8','#818cf8','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c','#22d3ee','#e879f9','#4ade80'];
-let charts = {};
+const charts = {};
 let currentTab = 'all';
 let sortCol = -1, sortAsc = true;
+
+// ── Filters ──
+function initFilters() {
+  const all = [...u18Data, ...vetData];
+  const locs = [...new Set(all.map(r => r[6]).filter(Boolean))].sort();
+  const countries = [...new Set(all.map(r => r[2]).filter(Boolean))].sort();
+  const locSel = document.getElementById('filterLocation');
+  const ctrSel = document.getElementById('filterCountry');
+  locSel.innerHTML = '<option value="all">All Locations</option>' + locs.map(l => '<option value="' + l + '">' + l + '</option>').join('');
+  ctrSel.innerHTML = '<option value="all">All Countries</option>' + countries.map(c => '<option value="' + c + '">' + c + '</option>').join('');
+}
 
 function getFiltered() {
   const type = document.getElementById('filterType').value;
@@ -114,144 +204,272 @@ function getFiltered() {
   const country = document.getElementById('filterCountry').value;
   let data = type === 'u18' ? [...u18Data] : type === 'vet' ? [...vetData] : [...u18Data, ...vetData];
   if (status !== 'all') data = data.filter(r => r[7].toLowerCase().includes(status));
-  if (location !== 'all') data = data.filter(r => r[6].includes(location));
+  if (location !== 'all') data = data.filter(r => r[6] === location);
   if (country !== 'all') data = data.filter(r => r[2] === country);
   return data;
 }
 
+// ── Utility ──
 function countBy(data, idx) {
   const m = {};
-  data.forEach(r => { const k = r[idx] || '(blank)'; m[k] = (m[k]||0) + 1; });
-  return Object.entries(m).sort((a,b) => b[1]-a[1]);
+  data.forEach(r => { const k = r[idx] || '(blank)'; m[k] = (m[k] || 0) + 1; });
+  return m;
 }
-
 function sumBy(data, idx, valIdx) {
   const m = {};
-  data.forEach(r => { const k = r[idx] || '(blank)'; m[k] = (m[k]||0) + r[valIdx]; });
-  return Object.entries(m).sort((a,b) => b[1]-a[1]);
+  data.forEach(r => { const k = r[idx] || '(blank)'; m[k] = (m[k] || 0) + r[valIdx]; });
+  return m;
+}
+function topN(obj, n) {
+  const entries = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+  return { labels: entries.slice(0, n).map(e => e[0]), values: entries.slice(0, n).map(e => e[1]) };
+}
+function fmtCurrency(v) { return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+function statusClass(s) {
+  const l = s.toLowerCase();
+  if (l.includes('confirmed')) return 'confirmed';
+  if (l.includes('offered')) return 'offered';
+  if (l.includes('pending')) return 'pending';
+  return 'other';
 }
 
-function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
-
-function makeChart(id, type, labels, datasets, opts = {}) {
-  destroyChart(id);
-  const ctx = document.getElementById(id).getContext('2d');
-  charts[id] = new Chart(ctx, {
-    type, data: { labels, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: true,
-      plugins: { legend: { display: opts.legend !== false, labels: { color: '#94a3b8', font: { size: 11 } } } },
-      scales: type === 'doughnut' || type === 'pie' ? {} : {
-        x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#334155' }, stacked: opts.stacked },
-        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#334155' }, stacked: opts.stacked }
-      },
-      indexAxis: opts.horizontal ? 'y' : 'x',
-      ...opts.extra
-    }
+// ── Progress Bar ──
+function renderProgressBar(data) {
+  const total = data.length;
+  const confirmed = data.filter(r => r[7].toLowerCase().includes('confirmed')).length;
+  const offered = data.filter(r => r[7].toLowerCase().includes('offered')).length;
+  const pending = data.filter(r => r[7].toLowerCase().includes('pending')).length;
+  const other = total - confirmed - offered - pending;
+  document.getElementById('progressTotal').textContent = total + ' Total Enrolments';
+  const bar = document.getElementById('progressBar');
+  bar.innerHTML = '';
+  const segs = [
+    { cls: 'seg-confirmed', val: confirmed, label: 'Confirmed' },
+    { cls: 'seg-offered', val: offered, label: 'Offered' },
+    { cls: 'seg-pending', val: pending, label: 'Pending' },
+  ];
+  if (other > 0) segs.push({ cls: 'seg-other', val: other, label: 'Other' });
+  segs.forEach(s => {
+    if (s.val === 0) return;
+    const pct = (s.val / total * 100);
+    const el = document.createElement('div');
+    el.className = 'seg ' + s.cls;
+    el.style.width = pct + '%';
+    el.textContent = s.val + ' (' + Math.round(pct) + '%)';
+    bar.appendChild(el);
   });
+  const legend = document.getElementById('progressLegend');
+  legend.innerHTML = segs.map(s => '<span><span class="dot" style="background:' +
+    (s.cls === 'seg-confirmed' ? '#34d399' : s.cls === 'seg-offered' ? '#38bdf8' : s.cls === 'seg-pending' ? '#fbbf24' : '#6b7280') +
+    '"></span>' + s.label + ': ' + s.val + '</span>').join('');
 }
 
+// ── KPI Cards ──
+function renderKPIs(data) {
+  const total = data.length;
+  const confirmed = data.filter(r => r[7].toLowerCase().includes('confirmed')).length;
+  const offered = data.filter(r => r[7].toLowerCase().includes('offered')).length;
+  const pending = data.filter(r => r[7].toLowerCase().includes('pending')).length;
+  const totalFee = data.reduce((s, r) => s + r[8], 0);
+  const countries = new Set(data.map(r => r[2]).filter(Boolean)).size;
+  const avgFee = total > 0 ? totalFee / total : 0;
+  const cards = [
+    { label: 'Total Enrolments', value: total, color: '#38bdf8', sub: 'U18: ' + data.filter(r => u18Data.includes(r)).length + ' | VET: ' + data.filter(r => vetData.includes(r)).length },
+    { label: 'Confirmed', value: confirmed, color: '#34d399', sub: total > 0 ? Math.round(confirmed/total*100) + '% of total' : '' },
+    { label: 'Offered', value: offered, color: '#fbbf24', sub: total > 0 ? Math.round(offered/total*100) + '% of total' : '' },
+    { label: 'Pending', value: pending, color: '#fb923c', sub: total > 0 ? Math.round(pending/total*100) + '% of total' : '' },
+    { label: 'Total Tuition Fee', value: fmtCurrency(totalFee), color: '#818cf8', sub: 'Avg: ' + fmtCurrency(Math.round(avgFee)) + ' per student' },
+    { label: 'Unique Countries', value: countries, color: '#22d3ee', sub: 'Diverse student body' },
+  ];
+  document.getElementById('kpiGrid').innerHTML = cards.map(c =>
+    '<div class="kpi-card"><div class="kpi-label">' + c.label + '</div><div class="kpi-value" style="color:' + c.color + '">' + c.value + '</div><div class="kpi-sub">' + c.sub + '</div></div>'
+  ).join('');
+}
+
+// ── Chart Helpers ──
+function makeChart(id, type, labels, datasets, opts) {
+  const ctx = document.getElementById(id).getContext('2d');
+  if (charts[id]) charts[id].destroy();
+  const defaults = {
+    responsive: true, maintainAspectRatio: true,
+    plugins: { legend: { display: type === 'doughnut', labels: { color: '#94a3b8', font: { size: 11 } } } },
+    scales: type === 'doughnut' ? {} : {
+      x: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: '#1e293b' } },
+      y: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: '#1e293b' } }
+    }
+  };
+  charts[id] = new Chart(ctx, { type, data: { labels, datasets }, options: Object.assign(defaults, opts || {}) });
+}
+
+// ── Render All ──
 function renderAll() {
   const data = getFiltered();
-  // KPIs
-  document.getElementById('kpiTotal').textContent = data.length;
-  document.getElementById('kpiConfirmed').textContent = data.filter(r => r[7].toLowerCase().includes('confirmed')).length;
-  document.getElementById('kpiOffered').textContent = data.filter(r => r[7].toLowerCase().includes('offered')).length;
-  const pending = data.filter(r => !r[7].toLowerCase().includes('confirmed') && !r[7].toLowerCase().includes('offered')).length;
-  document.getElementById('kpiPending').textContent = pending;
-  const totalFee = data.reduce((s, r) => s + r[8], 0);
-  document.getElementById('kpiFee').textContent = '$' + totalFee.toLocaleString();
-  document.getElementById('kpiCountries').textContent = new Set(data.map(r => r[2])).size;
-
-  // Status doughnut
-  const statusCounts = countBy(data, 7);
-  makeChart('chartStatus', 'doughnut',
-    statusCounts.map(e => e[0].replace('Tentative - ', '')),
-    [{ data: statusCounts.map(e => e[1]), backgroundColor: COLORS }]
-  );
-
-  // Top 10 countries
-  const top10Countries = countBy(data, 2).slice(0, 10);
-  makeChart('chartCountries', 'bar',
-    top10Countries.map(e => e[0]),
-    [{ label: 'Enrolments', data: top10Countries.map(e => e[1]), backgroundColor: COLORS }],
-    { horizontal: true, legend: false }
-  );
-
-  // Location doughnut
-  const locCounts = countBy(data, 6);
-  makeChart('chartLocation', 'doughnut',
-    locCounts.map(e => e[0].replace(' Campus)', '').replace('(', '')),
-    [{ data: locCounts.map(e => e[1]), backgroundColor: COLORS }]
-  );
-
-  // Top 10 qualifications
-  const top10Quals = countBy(data, 0).slice(0, 10);
-  makeChart('chartQuals', 'bar',
-    top10Quals.map(e => e[0].length > 35 ? e[0].substring(0, 35) + '...' : e[0]),
-    [{ label: 'Enrolments', data: top10Quals.map(e => e[1]), backgroundColor: COLORS }],
-    { horizontal: true, legend: false }
-  );
-
-  // Top 10 agents
-  const top10Agents = countBy(data, 9).slice(0, 10);
-  makeChart('chartAgents', 'bar',
-    top10Agents.map(e => e[0].length > 30 ? e[0].substring(0, 30) + '...' : e[0]),
-    [{ label: 'Enrolments', data: top10Agents.map(e => e[1]), backgroundColor: COLORS }],
-    { horizontal: true, legend: false }
-  );
-
-  // Officer workload
-  const officerCounts = countBy(data, 10).filter(e => e[0] !== '(blank)');
-  makeChart('chartOfficers', 'bar',
-    officerCounts.map(e => e[0]),
-    [{ label: 'Enrolments', data: officerCounts.map(e => e[1]), backgroundColor: COLORS }],
-    { legend: false }
-  );
-
-  // Commencement timeline (monthly, stacked by status)
-  const months = {};
-  data.forEach(r => {
-    if (!r[4]) return;
-    const m = r[4].substring(0, 7); // YYYY-MM
-    const st = r[7].toLowerCase().includes('confirmed') ? 'Confirmed' : r[7].toLowerCase().includes('offered') ? 'Offered' : 'Other';
-    if (!months[m]) months[m] = { Confirmed: 0, Offered: 0, Other: 0 };
-    months[m][st]++;
-  });
-  const sortedMonths = Object.keys(months).sort();
-  makeChart('chartTimeline', 'bar', sortedMonths, [
-    { label: 'Confirmed', data: sortedMonths.map(m => months[m].Confirmed), backgroundColor: '#34d399' },
-    { label: 'Offered', data: sortedMonths.map(m => months[m].Offered), backgroundColor: '#fbbf24' },
-    { label: 'Other', data: sortedMonths.map(m => months[m].Other), backgroundColor: '#94a3b8' }
-  ], { stacked: true });
-
-  // Fee by country
-  const feeByCountry = sumBy(data, 2, 8).slice(0, 10);
-  makeChart('chartFeeCountry', 'bar',
-    feeByCountry.map(e => e[0]),
-    [{ label: 'Total Fee', data: feeByCountry.map(e => e[1]), backgroundColor: COLORS }],
-    { horizontal: true, legend: false }
-  );
-
+  renderProgressBar(data);
+  renderKPIs(data);
+  renderCharts(data);
+  renderInsights(data);
   renderTable();
 }
 
+function renderCharts(data) {
+  // 1. Status Distribution (Doughnut)
+  const statusCounts = countBy(data, 7);
+  const statusLabels = Object.keys(statusCounts);
+  makeChart('chartStatus', 'doughnut', statusLabels,
+    [{ data: Object.values(statusCounts), backgroundColor: COLORS.slice(0, statusLabels.length), borderWidth: 0 }],
+    { plugins: { legend: { display: true, position: 'right' } } }
+  );
+
+  // 2. Top 10 Countries (Horizontal Bar)
+  const cc = topN(countBy(data, 2), 10);
+  makeChart('chartCountries', 'bar', cc.labels,
+    [{ label: 'Enrolments', data: cc.values, backgroundColor: '#38bdf8', borderRadius: 4 }],
+    { indexAxis: 'y', plugins: { legend: { display: false } } }
+  );
+
+  // 3. Delivery Location (Doughnut)
+  const locCounts = countBy(data, 6);
+  makeChart('chartLocation', 'doughnut', Object.keys(locCounts),
+    [{ data: Object.values(locCounts), backgroundColor: ['#38bdf8','#818cf8','#34d399','#fbbf24','#f87171'], borderWidth: 0 }],
+    { plugins: { legend: { display: true, position: 'right' } } }
+  );
+
+  // 4. Top 10 Qualifications (Horizontal Bar)
+  const qc = topN(countBy(data, 0), 10);
+  makeChart('chartQuals', 'bar', qc.labels,
+    [{ label: 'Enrolments', data: qc.values, backgroundColor: '#818cf8', borderRadius: 4 }],
+    { indexAxis: 'y', plugins: { legend: { display: false } },
+      scales: { y: { ticks: { color: '#94a3b8', font: { size: 10 }, callback: function(v) { const l = this.getLabelForValue(v); return l.length > 30 ? l.substring(0,30)+'...' : l; } }, grid: { color: '#1e293b' } },
+               x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } } } }
+  );
+
+  // 5. Top 10 Agents (Horizontal Bar)
+  const ac = topN(countBy(data, 9), 10);
+  makeChart('chartAgents', 'bar', ac.labels,
+    [{ label: 'Enrolments', data: ac.values, backgroundColor: '#34d399', borderRadius: 4 }],
+    { indexAxis: 'y', plugins: { legend: { display: false } },
+      scales: { y: { ticks: { color: '#94a3b8', font: { size: 10 }, callback: function(v) { const l = this.getLabelForValue(v); return l.length > 28 ? l.substring(0,28)+'...' : l; } }, grid: { color: '#1e293b' } },
+               x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } } } }
+  );
+
+  // 6. Officer Workload (Vertical Bar)
+  const oc = countBy(data, 10);
+  const officerLabels = Object.keys(oc).filter(k => k !== '(blank)').sort((a,b) => oc[b] - oc[a]);
+  makeChart('chartOfficers', 'bar', officerLabels,
+    [{ label: 'Enrolments', data: officerLabels.map(l => oc[l]), backgroundColor: COLORS.slice(0, officerLabels.length), borderRadius: 4 }],
+    { plugins: { legend: { display: false } } }
+  );
+
+  // 7. Commencement Timeline (Stacked Bar by Month)
+  const monthMap = {};
+  data.forEach(r => {
+    if (!r[4]) return;
+    const ym = r[4].substring(0, 7);
+    const sc = statusClass(r[7]);
+    if (!monthMap[ym]) monthMap[ym] = { confirmed: 0, offered: 0, pending: 0, other: 0 };
+    monthMap[ym][sc]++;
+  });
+  const timeLabels = Object.keys(monthMap).sort();
+  makeChart('chartTimeline', 'bar', timeLabels, [
+    { label: 'Confirmed', data: timeLabels.map(m => monthMap[m].confirmed), backgroundColor: '#34d399', borderRadius: 2 },
+    { label: 'Offered', data: timeLabels.map(m => monthMap[m].offered), backgroundColor: '#38bdf8', borderRadius: 2 },
+    { label: 'Pending', data: timeLabels.map(m => monthMap[m].pending), backgroundColor: '#fbbf24', borderRadius: 2 },
+    { label: 'Other', data: timeLabels.map(m => monthMap[m].other || 0), backgroundColor: '#6b7280', borderRadius: 2 },
+  ], { plugins: { legend: { display: true, labels: { color: '#94a3b8' } } }, scales: {
+    x: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+    y: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } } } }
+  );
+
+  // 8. Fee by Country (Horizontal Bar)
+  const fc = topN(sumBy(data, 2, 8), 10);
+  makeChart('chartFeeCountry', 'bar', fc.labels,
+    [{ label: 'Tuition Fee', data: fc.values, backgroundColor: '#fbbf24', borderRadius: 4 }],
+    { indexAxis: 'y', plugins: { legend: { display: false } },
+      scales: { x: { ticks: { color: '#94a3b8', callback: v => '$' + (v/1000).toFixed(0) + 'k' }, grid: { color: '#1e293b' } },
+               y: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: '#1e293b' } } } }
+  );
+}
+
+// ── Pipeline Insights ──
+function renderInsights(data) {
+  const total = data.length;
+  if (total === 0) { document.getElementById('insightsGrid').innerHTML = '<p style="color:#64748b">No data to analyse.</p>'; return; }
+
+  const totalFee = data.reduce((s, r) => s + r[8], 0);
+  const confirmed = data.filter(r => r[7].toLowerCase().includes('confirmed')).length;
+  const confirmRate = Math.round(confirmed / total * 100);
+
+  // Top country
+  const cc = countBy(data, 2);
+  const topCountry = Object.entries(cc).sort((a,b) => b[1]-a[1])[0];
+
+  // Top agent
+  const ac = countBy(data, 9);
+  const topAgent = Object.entries(ac).filter(e => e[0] !== '(blank)').sort((a,b) => b[1]-a[1])[0];
+
+  // Start date analysis
+  const now = new Date();
+  const upcoming30 = data.filter(r => { if (!r[4]) return false; const d = new Date(r[4]); return d >= now && d <= new Date(now.getTime() + 30*86400000); }).length;
+  const upcoming90 = data.filter(r => { if (!r[4]) return false; const d = new Date(r[4]); return d >= now && d <= new Date(now.getTime() + 90*86400000); }).length;
+
+  // Average study duration
+  const durations = data.filter(r => r[4] && r[5]).map(r => {
+    const s = new Date(r[4]); const e = new Date(r[5]);
+    return (e - s) / (1000 * 60 * 60 * 24 * 30.44);
+  }).filter(d => d > 0);
+  const avgDuration = durations.length > 0 ? (durations.reduce((a,b) => a+b, 0) / durations.length).toFixed(1) : 'N/A';
+
+  // Highest fee student
+  const maxFeeRow = data.reduce((best, r) => r[8] > best[8] ? r : best, data[0]);
+
+  // Fee by program type
+  const u18Fee = data.filter(r => u18Data.includes(r)).reduce((s,r) => s+r[8], 0);
+  const vetFee = data.filter(r => vetData.includes(r)).reduce((s,r) => s+r[8], 0);
+
+  const insights = [
+    { label: 'Confirmation Rate', value: confirmRate + '%', detail: confirmed + ' of ' + total + ' enrolments confirmed', color: '#34d399' },
+    { label: 'Top Source Country', value: topCountry ? topCountry[0] : 'N/A', detail: topCountry ? topCountry[1] + ' enrolments (' + Math.round(topCountry[1]/total*100) + '%)' : '', color: '#38bdf8' },
+    { label: 'Top Agent', value: topAgent ? (topAgent[0].length > 20 ? topAgent[0].substring(0,20)+'...' : topAgent[0]) : 'N/A', detail: topAgent ? topAgent[1] + ' enrolments' : '', color: '#818cf8' },
+    { label: 'Starting Within 30 Days', value: upcoming30, detail: upcoming90 + ' within 90 days', color: '#fbbf24' },
+    { label: 'Avg Study Duration', value: avgDuration + ' months', detail: 'Based on start to end dates', color: '#a78bfa' },
+    { label: 'Highest Fee', value: fmtCurrency(maxFeeRow[8]), detail: maxFeeRow[1] + ' — ' + maxFeeRow[0].substring(0,30), color: '#fb923c' },
+    { label: 'U18 Pipeline Value', value: fmtCurrency(u18Fee), detail: data.filter(r => u18Data.includes(r)).length + ' students', color: '#22d3ee' },
+    { label: 'VET Pipeline Value', value: fmtCurrency(vetFee), detail: data.filter(r => vetData.includes(r)).length + ' students', color: '#e879f9' },
+    { label: 'Avg Fee Per Student', value: fmtCurrency(Math.round(totalFee / total)), detail: 'Total: ' + fmtCurrency(totalFee), color: '#4ade80' },
+  ];
+
+  document.getElementById('insightsGrid').innerHTML = insights.map(i =>
+    '<div class="insight-item"><div class="insight-label">' + i.label + '</div><div class="insight-value" style="color:' + i.color + '">' + i.value + '</div><div class="insight-detail">' + i.detail + '</div></div>'
+  ).join('');
+}
+
+// ── Data Table ──
 function switchTab(tab, btn) {
   currentTab = tab;
-  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.table-tabs button').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   renderTable();
 }
 
-function renderTable() {
+function getTableData() {
   let data;
   if (currentTab === 'u18') data = [...u18Data];
   else if (currentTab === 'vet') data = [...vetData];
   else data = [...u18Data, ...vetData];
 
-  const search = (document.getElementById('tableSearch').value || '').toLowerCase();
-  if (search) data = data.filter(r => r.some(c => String(c).toLowerCase().includes(search)));
+  // Apply main filters
+  const status = document.getElementById('filterStatus').value;
+  const location = document.getElementById('filterLocation').value;
+  const country = document.getElementById('filterCountry').value;
+  if (status !== 'all') data = data.filter(r => r[7].toLowerCase().includes(status));
+  if (location !== 'all') data = data.filter(r => r[6] === location);
+  if (country !== 'all') data = data.filter(r => r[2] === country);
 
+  // Search
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  if (q) data = data.filter(r => r.some(c => String(c).toLowerCase().includes(q)));
+
+  // Sort
   if (sortCol >= 0) {
     data.sort((a, b) => {
       let va = a[sortCol], vb = b[sortCol];
@@ -259,31 +477,8 @@ function renderTable() {
       return sortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
     });
   }
-
-  const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = data.map(r => {
-    const statusLower = (r[7] || '').toLowerCase();
-    let badge = 'badge-pending';
-    if (statusLower.includes('confirmed')) badge = 'badge-confirmed';
-    else if (statusLower.includes('offered')) badge = 'badge-offered';
-    const statusLabel = (r[7] || '').replace('Tentative - ', '') || 'Pending';
-    return '<tr>' +
-      '<td>' + esc(r[0]) + '</td>' +
-      '<td>' + esc(r[1]) + '</td>' +
-      '<td>' + esc(r[2]) + '</td>' +
-      '<td>' + esc(r[3]) + '</td>' +
-      '<td>' + esc(r[4]) + '</td>' +
-      '<td>' + esc(r[5]) + '</td>' +
-      '<td>' + esc(r[6]) + '</td>' +
-      '<td><span class="badge ' + badge + '">' + esc(statusLabel) + '</span></td>' +
-      '<td>$' + (r[8] || 0).toLocaleString() + '</td>' +
-      '<td>' + esc(r[9]) + '</td>' +
-      '<td>' + esc(r[10]) + '</td>' +
-      '</tr>';
-  }).join('');
+  return data;
 }
-
-function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
 function sortTable(col) {
   if (sortCol === col) sortAsc = !sortAsc;
@@ -291,17 +486,29 @@ function sortTable(col) {
   renderTable();
 }
 
-// Populate location & country dropdowns
-function initFilters() {
-  const all = [...u18Data, ...vetData];
-  const locs = [...new Set(all.map(r => r[6]))].sort();
-  const countries = [...new Set(all.map(r => r[2]))].sort();
-  const locSel = document.getElementById('filterLocation');
-  locs.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l; locSel.appendChild(o); });
-  const cSel = document.getElementById('filterCountry');
-  countries.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; cSel.appendChild(o); });
+function renderTable() {
+  const data = getTableData();
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = data.map(r => {
+    const sc = statusClass(r[7]);
+    const statusLabel = r[7].replace('Tentative - ', '');
+    return '<tr>' +
+      '<td title="' + r[0] + '">' + (r[0].length > 35 ? r[0].substring(0,35)+'...' : r[0]) + '</td>' +
+      '<td>' + r[1] + '</td>' +
+      '<td>' + r[2] + '</td>' +
+      '<td>' + r[3] + '</td>' +
+      '<td>' + r[4] + '</td>' +
+      '<td>' + r[5] + '</td>' +
+      '<td title="' + r[6] + '">' + (r[6].length > 20 ? r[6].substring(0,20)+'...' : r[6]) + '</td>' +
+      '<td><span class="badge badge-' + sc + '">' + statusLabel + '</span></td>' +
+      '<td>' + fmtCurrency(r[8]) + '</td>' +
+      '<td title="' + r[9] + '">' + (r[9].length > 20 ? r[9].substring(0,20)+'...' : r[9]) + '</td>' +
+      '<td>' + r[10] + '</td>' +
+    '</tr>';
+  }).join('');
 }
 
+// ── Init ──
 initFilters();
 renderAll();
 </script>
