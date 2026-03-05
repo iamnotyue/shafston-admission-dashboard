@@ -138,9 +138,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,Bl
 
 <div class="nav-tabs">
   <button class="active" onclick="switchMainTab('applications')">Applications<span class="tab-badge">63</span></button>
-  <button onclick="switchMainTab('tentative')">Tentative Pipeline<span class="tab-badge">139</span></button>
-  <button onclick="switchMainTab('students')">Current Students<span class="tab-badge">202</span></button>
-  <button onclick="switchMainTab('weekly')">Weekly Targets</button>
+  <button onclick="switchMainTab('tentative')">Tentative<span class="tab-badge">139</span></button>
+  <button onclick="switchMainTab('students')">In Progress<span class="tab-badge">202</span></button>
+  <button onclick="switchMainTab('weekly')">Weekly</button>
 </div>
 
 <!-- ═══════════════ TAB 1: APPLICATIONS (Report 79035) ═══════════════ -->
@@ -151,6 +151,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,Bl
   <div class="filter-group"><label>Status</label><select id="appFilterStatus" onchange="renderApplications()"><option value="all">All Statuses</option><option value="Tentative">Tentative</option><option value="In Progress">In Progress</option><option value="Completed">Completed</option><option value="Cancelled">Cancelled</option></select></div>
   <div class="filter-group"><label>Location</label><select id="appFilterLoc" onchange="renderApplications()"></select></div>
   <div class="filter-group"><label>Country</label><select id="appFilterCountry" onchange="renderApplications()"></select></div>
+  <div class="filter-group"><label>Agent</label><select id="appFilterAgent" onchange="renderApplications()"></select></div>
 </div>
 
 <div class="progress-container">
@@ -203,6 +204,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,Bl
   <div class="filter-group"><label>Status</label><select id="tentFilterStatus" onchange="renderTentative()"><option value="all">All Statuses</option><option value="confirmed">Confirmed</option><option value="offered">Offered</option></select></div>
   <div class="filter-group"><label>Location</label><select id="tentFilterLoc" onchange="renderTentative()"></select></div>
   <div class="filter-group"><label>Country</label><select id="tentFilterCountry" onchange="renderTentative()"></select></div>
+  <div class="filter-group"><label>Officer</label><select id="tentFilterOfficer" onchange="renderTentative()"></select></div>
 </div>
 
 <div class="progress-container">
@@ -256,6 +258,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,Bl
   <div class="filter-group"><label>Program Type</label><select id="studFilterType" onchange="renderStudents()"><option value="all">All Programs</option><option value="u18">U18 Only</option><option value="vet">VET Only</option></select></div>
   <div class="filter-group"><label>Location</label><select id="studFilterLoc" onchange="renderStudents()"></select></div>
   <div class="filter-group"><label>Country</label><select id="studFilterCountry" onchange="renderStudents()"></select></div>
+  <div class="filter-group"><label>Officer</label><select id="studFilterOfficer" onchange="renderStudents()"></select></div>
 </div>
 
 <div class="kpi-grid" id="studKpiGrid"></div>
@@ -399,8 +402,10 @@ let appTab='all', appSortCol=-1, appSortAsc=true;
 function initAppFilters(){
   const locs=[...new Set(appData.map(r=>r[6]).filter(Boolean))].sort();
   const countries=[...new Set(appData.map(r=>r[2]).filter(Boolean))].sort();
+  const agents=[...new Set(appData.map(r=>r[9]).filter(Boolean))].sort();
   document.getElementById('appFilterLoc').innerHTML='<option value="all">All Locations</option>'+locs.map(l=>'<option value="'+l+'">'+l+'</option>').join('');
   document.getElementById('appFilterCountry').innerHTML='<option value="all">All Countries</option>'+countries.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+  document.getElementById('appFilterAgent').innerHTML='<option value="all">All Agents</option>'+agents.map(a=>'<option value="'+a+'">'+truncStr(a,30)+'</option>').join('');
 }
 
 function getAppFiltered(){
@@ -408,12 +413,14 @@ function getAppFiltered(){
   const status=document.getElementById('appFilterStatus').value;
   const loc=document.getElementById('appFilterLoc').value;
   const country=document.getElementById('appFilterCountry').value;
+  const agent=document.getElementById('appFilterAgent').value;
   let d=[...appData];
   if(type==='u18')d=d.filter(r=>isU18Q(r[0]));
   if(type==='vet')d=d.filter(r=>!isU18Q(r[0]));
   if(status!=='all')d=d.filter(r=>r[8]===status);
   if(loc!=='all')d=d.filter(r=>r[6]===loc);
   if(country!=='all')d=d.filter(r=>r[2]===country);
+  if(agent!=='all')d=d.filter(r=>r[9]===agent);
   return d;
 }
 
@@ -511,9 +518,11 @@ function renderAppTable(){
   const sf=document.getElementById('appFilterStatus').value;
   const lf=document.getElementById('appFilterLoc').value;
   const cf=document.getElementById('appFilterCountry').value;
+  const agf=document.getElementById('appFilterAgent').value;
   if(sf!=='all')d=d.filter(r=>r[8]===sf);
   if(lf!=='all')d=d.filter(r=>r[6]===lf);
   if(cf!=='all')d=d.filter(r=>r[2]===cf);
+  if(agf!=='all')d=d.filter(r=>r[9]===agf);
   const q=document.getElementById('appSearch').value.toLowerCase();
   if(q)d=d.filter(r=>r.some(c=>String(c).toLowerCase().includes(q)));
   if(appSortCol>=0)d.sort((a,b)=>{let va=a[appSortCol],vb=b[appSortCol];if(typeof va==='number')return appSortAsc?va-vb:vb-va;return appSortAsc?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va));});
@@ -532,8 +541,10 @@ function initTentFilters(){
   const all=[...tentU18Data,...tentVetData];
   const locs=[...new Set(all.map(r=>r[6]).filter(Boolean))].sort();
   const countries=[...new Set(all.map(r=>r[2]).filter(Boolean))].sort();
+  const officers=[...new Set(all.map(r=>r[10]).filter(Boolean))].sort();
   document.getElementById('tentFilterLoc').innerHTML='<option value="all">All Locations</option>'+locs.map(l=>'<option value="'+l+'">'+l+'</option>').join('');
   document.getElementById('tentFilterCountry').innerHTML='<option value="all">All Countries</option>'+countries.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+  document.getElementById('tentFilterOfficer').innerHTML='<option value="all">All Officers</option>'+officers.map(o=>'<option value="'+o+'">'+o+'</option>').join('');
 }
 
 function getTentFiltered(){
@@ -541,10 +552,12 @@ function getTentFiltered(){
   const status=document.getElementById('tentFilterStatus').value;
   const loc=document.getElementById('tentFilterLoc').value;
   const country=document.getElementById('tentFilterCountry').value;
+  const officer=document.getElementById('tentFilterOfficer').value;
   let d=type==='u18'?[...tentU18Data]:type==='vet'?[...tentVetData]:[...tentU18Data,...tentVetData];
   if(status!=='all')d=d.filter(r=>r[7].toLowerCase().includes(status));
   if(loc!=='all')d=d.filter(r=>r[6]===loc);
   if(country!=='all')d=d.filter(r=>r[2]===country);
+  if(officer!=='all')d=d.filter(r=>r[10]===officer);
   return d;
 }
 
@@ -623,8 +636,8 @@ function switchTentTab(t,btn){tentTab=t;document.querySelectorAll('#tab-tentativ
 function sortTentTable(c){if(tentSortCol===c)tentSortAsc=!tentSortAsc;else{tentSortCol=c;tentSortAsc=true;}renderTentTable();}
 function renderTentTable(){
   let d=tentTab==='u18'?[...tentU18Data]:tentTab==='vet'?[...tentVetData]:[...tentU18Data,...tentVetData];
-  const sf=document.getElementById('tentFilterStatus').value;const lf=document.getElementById('tentFilterLoc').value;const cf=document.getElementById('tentFilterCountry').value;
-  if(sf!=='all')d=d.filter(r=>r[7].toLowerCase().includes(sf));if(lf!=='all')d=d.filter(r=>r[6]===lf);if(cf!=='all')d=d.filter(r=>r[2]===cf);
+  const sf=document.getElementById('tentFilterStatus').value;const lf=document.getElementById('tentFilterLoc').value;const cf=document.getElementById('tentFilterCountry').value;const of2=document.getElementById('tentFilterOfficer').value;
+  if(sf!=='all')d=d.filter(r=>r[7].toLowerCase().includes(sf));if(lf!=='all')d=d.filter(r=>r[6]===lf);if(cf!=='all')d=d.filter(r=>r[2]===cf);if(of2!=='all')d=d.filter(r=>r[10]===of2);
   const q=document.getElementById('tentSearch').value.toLowerCase();
   if(q)d=d.filter(r=>r.some(c=>String(c).toLowerCase().includes(q)));
   if(tentSortCol>=0)d.sort((a,b)=>{let va=a[tentSortCol],vb=b[tentSortCol];if(typeof va==='number')return tentSortAsc?va-vb:vb-va;return tentSortAsc?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va));});
@@ -643,17 +656,21 @@ function initStudFilters(){
   const all=[...studU18Data,...studVetData];
   const locs=[...new Set(all.map(r=>r[6]).filter(Boolean))].sort();
   const countries=[...new Set(all.map(r=>r[2]).filter(Boolean))].sort();
+  const officers=[...new Set(all.map(r=>r[10]).filter(Boolean))].sort();
   document.getElementById('studFilterLoc').innerHTML='<option value="all">All Locations</option>'+locs.map(l=>'<option value="'+l+'">'+l+'</option>').join('');
   document.getElementById('studFilterCountry').innerHTML='<option value="all">All Countries</option>'+countries.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+  document.getElementById('studFilterOfficer').innerHTML='<option value="all">All Officers</option>'+officers.map(o=>'<option value="'+o+'">'+o+'</option>').join('');
 }
 
 function getStudFiltered(){
   const type=document.getElementById('studFilterType').value;
   const loc=document.getElementById('studFilterLoc').value;
   const country=document.getElementById('studFilterCountry').value;
+  const officer=document.getElementById('studFilterOfficer').value;
   let d=type==='u18'?[...studU18Data]:type==='vet'?[...studVetData]:[...studU18Data,...studVetData];
   if(loc!=='all')d=d.filter(r=>r[6]===loc);
   if(country!=='all')d=d.filter(r=>r[2]===country);
+  if(officer!=='all')d=d.filter(r=>r[10]===officer);
   return d;
 }
 
@@ -725,8 +742,8 @@ function switchStudTab(t,btn){studTab=t;document.querySelectorAll('#tab-students
 function sortStudTable(c){if(studSortCol===c)studSortAsc=!studSortAsc;else{studSortCol=c;studSortAsc=true;}renderStudTable();}
 function renderStudTable(){
   let d=studTab==='u18'?[...studU18Data]:studTab==='vet'?[...studVetData]:[...studU18Data,...studVetData];
-  const lf=document.getElementById('studFilterLoc').value;const cf=document.getElementById('studFilterCountry').value;
-  if(lf!=='all')d=d.filter(r=>r[6]===lf);if(cf!=='all')d=d.filter(r=>r[2]===cf);
+  const lf=document.getElementById('studFilterLoc').value;const cf=document.getElementById('studFilterCountry').value;const of2=document.getElementById('studFilterOfficer').value;
+  if(lf!=='all')d=d.filter(r=>r[6]===lf);if(cf!=='all')d=d.filter(r=>r[2]===cf);if(of2!=='all')d=d.filter(r=>r[10]===of2);
   const q=document.getElementById('studSearch').value.toLowerCase();
   if(q)d=d.filter(r=>r.some(c=>String(c).toLowerCase().includes(q)));
   if(studSortCol>=0)d.sort((a,b)=>{let va=a[studSortCol],vb=b[studSortCol];if(typeof va==='number')return studSortAsc?va-vb:vb-va;return studSortAsc?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va));});
@@ -768,6 +785,8 @@ function renderWeekly(){
   const mf=document.getElementById('wFilterMonth').value;
   const wf=document.getElementById('wFilterWeek').value;
   const af=document.getElementById('wFilterAgent').value;
+
+  // Apply ALL filters to weeks
   let weeks=[...allWeeks];
   if(mf!=='all'){const m=parseInt(mf);weeks=weeks.filter(w=>w.monday.getMonth()===m||w.sunday.getMonth()===m);}
   if(wf!=='all')weeks=weeks.filter(w=>w.key===wf);
@@ -775,30 +794,34 @@ function renderWeekly(){
     weeks=weeks.map(w=>{const recs=w.records.filter(r=>r[9]===af);return{...w,u18:recs.filter(r=>isU18Q(r[0])).length,vet:recs.filter(r=>!isU18Q(r[0])).length,fee:recs.reduce((s,r)=>s+r[7],0),records:recs};});
   }
 
-  const numWeeks=allWeeks.length;
-  const allU18=allWeeks.reduce((s,w)=>s+w.u18,0);
-  const allVET=allWeeks.reduce((s,w)=>s+w.vet,0);
-  const allTotal=allU18+allVET;
-  const allFee=allWeeks.reduce((s,w)=>s+w.fee,0);
+  // KPIs from FILTERED data
+  const numWeeks=weeks.length;
+  const fU18=weeks.reduce((s,w)=>s+w.u18,0);
+  const fVET=weeks.reduce((s,w)=>s+w.vet,0);
+  const fTotal=fU18+fVET;
+  const fFee=weeks.reduce((s,w)=>s+w.fee,0);
 
   const kpis=[
-    {l:'2026 YTD Applications',v:allTotal,c:'var(--cyan)',s:'Target: '+(numWeeks*WEEKLY_TOTAL)+' ('+numWeeks+' weeks)'},
-    {l:'U18 Applications',v:allU18,c:'var(--emerald)',s:'Target: '+(numWeeks*WEEKLY_U18)+' | '+(allU18>=numWeeks*WEEKLY_U18?'On Track':'Behind')},
-    {l:'VET Applications',v:allVET,c:'var(--purple)',s:'Target: '+(numWeeks*WEEKLY_VET)+' | '+(allVET>=numWeeks*WEEKLY_VET?'On Track':'Behind')},
-    {l:'Total Fee',v:fmt$(allFee),c:'var(--amber)',s:af!=='all'?truncStr(af,20):'All agents'},
-    {l:'Avg/Week',v:(numWeeks>0?(allTotal/numWeeks).toFixed(1):'0'),c:'var(--teal)',s:'Target: '+WEEKLY_TOTAL+'/week'},
+    {l:'Applications',v:fTotal,c:'var(--cyan)',s:'Target: '+(numWeeks*WEEKLY_TOTAL)+' ('+numWeeks+' wks)'},
+    {l:'U18',v:fU18,c:'var(--emerald)',s:'Target: '+(numWeeks*WEEKLY_U18)+' | '+(fU18>=numWeeks*WEEKLY_U18?'On Track':'Behind')},
+    {l:'VET',v:fVET,c:'var(--purple)',s:'Target: '+(numWeeks*WEEKLY_VET)+' | '+(fVET>=numWeeks*WEEKLY_VET?'On Track':'Behind')},
+    {l:'Total Fee',v:fmt$(fFee),c:'var(--amber)',s:af!=='all'?truncStr(af,20):'All agents'},
+    {l:'Avg/Week',v:(numWeeks>0?(fTotal/numWeeks).toFixed(1):'0'),c:'var(--teal)',s:'Target: '+WEEKLY_TOTAL+'/week'},
   ];
   document.getElementById('weeklyKpiGrid').innerHTML=kpis.map((k,i)=>'<div class="kpi-card"><div class="kpi-label">'+k.l+'</div><div class="kpi-value" style="color:'+k.c+'">'+k.v+'</div><div class="kpi-sub">'+k.s+'</div></div>').join('');
 
-  // Target achievement
-  const all2026=appData.filter(r=>r[3]&&r[3].startsWith('2026'));
-  const hspCount=all2026.filter(r=>qualType(r[0])==='HSP').length;
-  const pepCount=all2026.filter(r=>qualType(r[0])==='PEP').length;
-  const ylcCount=all2026.filter(r=>qualType(r[0])==='YLC').length;
-  const vetCount=all2026.filter(r=>qualType(r[0])==='VET').length;
-  const hspPepFee=all2026.filter(r=>{const t=qualType(r[0]);return t==='HSP'||t==='PEP'}).reduce((s,r)=>s+r[7],0);
-  const ylcFee=all2026.filter(r=>qualType(r[0])==='YLC').reduce((s,r)=>s+r[7],0);
-  const vetFee=all2026.filter(r=>qualType(r[0])==='VET').reduce((s,r)=>s+r[7],0);
+  // Target achievement from FILTERED data
+  let filtered2026=appData.filter(r=>r[3]&&r[3].startsWith('2026'));
+  if(af!=='all')filtered2026=filtered2026.filter(r=>r[9]===af);
+  if(mf!=='all'){const m=parseInt(mf);filtered2026=filtered2026.filter(r=>{if(!r[3])return false;const d=new Date(r[3]+'T00:00:00');return d.getMonth()===m;});}
+
+  const hspCount=filtered2026.filter(r=>qualType(r[0])==='HSP').length;
+  const pepCount=filtered2026.filter(r=>qualType(r[0])==='PEP').length;
+  const ylcCount=filtered2026.filter(r=>qualType(r[0])==='YLC').length;
+  const vetCount=filtered2026.filter(r=>qualType(r[0])==='VET').length;
+  const hspPepFee=filtered2026.filter(r=>{const t=qualType(r[0]);return t==='HSP'||t==='PEP'}).reduce((s,r)=>s+r[7],0);
+  const ylcFee=filtered2026.filter(r=>qualType(r[0])==='YLC').reduce((s,r)=>s+r[7],0);
+  const vetFee=filtered2026.filter(r=>qualType(r[0])==='VET').reduce((s,r)=>s+r[7],0);
   const ytdPct=numWeeks/52;
 
   const targets=[
@@ -818,19 +841,18 @@ function renderWeekly(){
       '<div class="target-detail">'+pctR+'% of annual target</div></div></div>';
   }).join('');
 
-  // Charts
-  const labels=allWeeks.map(w=>'W'+w.weekNum);
-  let u18V,vetV;
-  if(af!=='all'){u18V=allWeeks.map(w=>w.records.filter(r=>r[9]===af&&isU18Q(r[0])).length);vetV=allWeeks.map(w=>w.records.filter(r=>r[9]===af&&!isU18Q(r[0])).length);}
-  else{u18V=allWeeks.map(w=>w.u18);vetV=allWeeks.map(w=>w.vet);}
+  // Charts from FILTERED weeks
+  const labels=weeks.map(w=>'W'+w.weekNum);
+  const u18V=weeks.map(w=>w.u18);
+  const vetV=weeks.map(w=>w.vet);
   const totV=u18V.map((v,i)=>v+vetV[i]);
   makeChart('chartWeeklyTrend','line',labels,[
     {label:'Total',data:totV,borderColor:'#0ea5e9',backgroundColor:'rgba(14,165,233,.08)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:'#0ea5e9'},
-    {label:'Target ('+WEEKLY_TOTAL+')',data:allWeeks.map(()=>WEEKLY_TOTAL),borderColor:'#ef4444',borderDash:[6,4],pointRadius:0,fill:false},
+    {label:'Target ('+WEEKLY_TOTAL+')',data:weeks.map(()=>WEEKLY_TOTAL),borderColor:'#ef4444',borderDash:[6,4],pointRadius:0,fill:false},
   ],{plugins:{legend:{display:true,labels:{color:'#7a8ba8'}}}});
 
   let cumA=0,cumT=0;
-  const cA=totV.map(v=>{cumA+=v;return cumA});const cT=allWeeks.map(()=>{cumT+=WEEKLY_TOTAL;return cumT});
+  const cA=totV.map(v=>{cumA+=v;return cumA});const cT=weeks.map(()=>{cumT+=WEEKLY_TOTAL;return cumT});
   makeChart('chartCumulative','line',labels,[
     {label:'Actual',data:cA,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,.08)',fill:true,tension:.3,pointRadius:3,pointBackgroundColor:'#22c55e'},
     {label:'Target',data:cT,borderColor:'#ef4444',borderDash:[6,4],pointRadius:0,fill:false},
@@ -841,22 +863,22 @@ function renderWeekly(){
     {label:'VET',data:vetV,backgroundColor:'#818cf8',borderRadius:2},
   ],{plugins:{legend:{display:true,labels:{color:'#7a8ba8'}}},scales:{x:{stacked:true},y:{stacked:true}}});
 
-  // Agent performance
-  const agMap={};all2026.forEach(r=>{const a=r[9]||'(unassigned)';agMap[a]=(agMap[a]||0)+1;});
+  // Agent performance from FILTERED data
+  const agMap={};filtered2026.forEach(r=>{const a=r[9]||'(unassigned)';agMap[a]=(agMap[a]||0)+1;});
   const agSorted=Object.entries(agMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
   makeChart('chartAgentPerf','bar',agSorted.map(s=>truncStr(s[0],20)),[
     {label:'Applications',data:agSorted.map(s=>s[1]),backgroundColor:COLORS.slice(0,agSorted.length),borderRadius:4}
   ],{plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#7a8ba8',font:{size:9}},grid:{color:'rgba(30,45,71,.5)'}},x:{ticks:{color:'#7a8ba8'},grid:{color:'rgba(30,45,71,.5)'}}}});
 
-  // Weekly table
+  // Weekly table from FILTERED weeks
   let cum=0;
   document.getElementById('weeklyTableBody').innerHTML=weeks.map(w=>{
     const total=w.u18+w.vet;cum+=total;const diff=total-WEEKLY_TOTAL;
     return '<tr><td>W'+w.weekNum+'</td><td>'+fmtShort(w.monday)+' - '+fmtShort(w.sunday)+'</td><td>'+w.u18+'</td><td>'+WEEKLY_U18+'</td><td>'+w.vet+'</td><td>'+WEEKLY_VET+'</td><td style="font-weight:700">'+total+'</td><td>'+WEEKLY_TOTAL+'</td><td class="'+(diff>=0?'on-target':'below-target')+'" style="font-weight:700">'+(diff>=0?'+':'')+diff+'</td><td>'+fmt$(w.fee)+'</td><td>'+cum+'</td></tr>';
   }).join('');
 
-  // Agent table
-  const agTbl={};all2026.forEach(r=>{
+  // Agent table from FILTERED data
+  const agTbl={};filtered2026.forEach(r=>{
     const a=r[9]||'(unassigned)';if(!agTbl[a])agTbl[a]={u18:0,vet:0,fee:0};
     if(isU18Q(r[0]))agTbl[a].u18++;else agTbl[a].vet++;agTbl[a].fee+=r[7];
   });
