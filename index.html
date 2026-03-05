@@ -489,7 +489,9 @@ function renderApplications(){
   ],{plugins:{legend:{display:true,labels:{color:'#7a8ba8'}}},scales:{x:{stacked:true},y:{stacked:true}}});
 
   // Insights
-  const convRate=total>0?Math.round((ip+comp)/(total)*100):0;
+  const nowD=new Date();const todayStr=nowD.getFullYear()+'-'+String(nowD.getMonth()+1).padStart(2,'0')+'-'+String(nowD.getDate()).padStart(2,'0');
+  const pastComm=d.filter(r=>r[4]&&r[4]<=todayStr).length;
+  const convRate=pastComm>0?Math.round((ip+comp)/pastComm*100):0;
   const topC=Object.entries(countBy(d,2)).sort((a,b)=>b[1]-a[1])[0];
   const topA=Object.entries(countBy(d,9)).filter(e=>e[0]!=='(blank)').sort((a,b)=>b[1]-a[1])[0];
   const avgFee=total>0?Math.round(fee/total):0;
@@ -497,7 +499,7 @@ function renderApplications(){
   const avgW=avgWeeks.length>0?Math.round(avgWeeks.reduce((s,r)=>s+r[14],0)/avgWeeks.length):0;
   const maxFee=d.reduce((b,r)=>r[7]>b[7]?r:b,d[0]||[0,0,0,0,0,0,0,0,0]);
   const ins=[
-    {l:'Conversion Rate',v:convRate+'%',d:(ip+comp)+' converted of '+total,c:'var(--emerald)'},
+    {l:'Conversion Rate',v:convRate+'%',d:(ip+comp)+' converted of '+pastComm+' (commenced)',c:'var(--emerald)'},
     {l:'Top Country',v:topC?topC[0]:'N/A',d:topC?topC[1]+' applications':'',c:'var(--cyan)'},
     {l:'Top Agent',v:topA?truncStr(topA[0],20):'N/A',d:topA?topA[1]+' applications':'',c:'var(--purple)'},
     {l:'Average Fee',v:fmt$(avgFee),d:'Total: '+fmt$(fee),c:'var(--amber)'},
